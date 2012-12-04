@@ -37,7 +37,7 @@ JPEG image files have EXIF metadata. MP3 audio clips have ID3 metadata.
 Adobe is pushing an interoperable standard called XMP to hold metadata as well.
 Video files also have metadata.  
 
-If you use a production tools like Adobe Bridge or Audacity, you probably
+If you use a production tool like Adobe Bridge or Audacity, you probably
 put this kind of metadata into your files.  And then
 you probably rekey it when you put the files into your WordPress
 site.  
