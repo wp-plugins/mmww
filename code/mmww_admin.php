@@ -1,6 +1,7 @@
 <?php    
 
 add_action('admin_menu','mmww_admin_actions');
+add_action('admin_init','mmww_register_setting');
 
 function mmww_admin_actions() {
 	load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
@@ -8,7 +9,60 @@ function mmww_admin_actions() {
 			__( 'Media Metadata', 'mmww' ), 
 			'upload_files', 
 			'mmww', 'mmww_admin_page' );
+	
 };
+
+function mmww_register_setting(){
+	register_setting( 'mmww', 'mmww_options', 'mmww_admin_validate_options' );
+}
+
+/**
+ * emit the options heading for the audio section
+ */
+function mmww_admin_audio_text() {
+	echo '<p>' . __('Options for audio files', 'mmww') . '</p>';
+}
+
+/**
+ * emit the shortcode question
+ */
+function mmww_admin_audio_shortcode_text() {
+	// get option 'audio' value from the database
+	$options = get_option( 'mmww_options' );
+	$choice = (empty( $options['audio_shortcode'] )) ? 'disabled' : $options['audio_shortcode'];
+
+	$choices = array (
+		'disabled' => __( '(Never)', 'mmww'),
+		'custom' => __( 'Custom URL', 'mmww'),
+		'attachment' => __( 'Attachment Page', 'mmww'),
+		'media' => __( 'Media File', 'mmww'),
+		'none' => __( 'None', 'mmww'),
+		'always' => __( '(Always)', 'mmww'),
+	);
+	$pattern = '<input type="radio" id="mmww_admin_audio_shortcode" name="mmww_options[audio_shortcode]" value="%1$s" %2$s> %3$s';
+
+	$f = array();
+	foreach ($choices as $i => $k) {
+		$checked =($choice == $i) ? 'checked' : '';
+		$f[] = sprintf($pattern,$i,$checked,$k );
+	}
+	echo implode('&nbsp;&nbsp;&nbsp;&nbsp',$f);
+	unset ($f);
+}
+
+
+/**
+ * validate the options settings
+ * @param array $input
+ * @return validated array
+ */
+function mmww_admin_validate_options( $input ) {
+	$valid = array();
+	$valid['audio_shortcode'] = $input['audio_shortcode'];
+	return $valid;
+}
+
+
 
 function mmww_admin_page() {
 	load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
@@ -19,44 +73,12 @@ function mmww_admin_page() {
 	printf ('<div class="wrap"><h2>' . __( 'Media Metadata Workflow Wizard (Version %1s) Options', 'mmww' ) . '</h2></div>', MMWW_VERSION_NUM);
 	_e( 'Test page' );
 	
-	register_setting(
-			'mmww_options',
-			'mmww_options',
-			'mmww_admin_validate_options'
-	);
 	
-	function mmww_admin_audio_text() {
-		echo '<p>' . __('Options for audio files', 'mmww') . '</p>';
-	}
 	add_settings_section(
 			'mmww_admin_audio',
 			__( 'Audio Settings', 'mmww' ),
 			'mmww_admin_audio_text', 
 		    'mmww' );
-	
-	function mmww_admin_audio_shortcode_text() {
-		// get option 'audio' value from the database
-		$options = get_option( 'mmww_options' );
-		$choice = (empty( $options['audio_shortcode'] )) ? 'disabled' : $options['audio_shortcode'];
-
-		$choices = array (
-			'disabled' => __( '(Never)', 'mmww'), 
-			'custom' => __( 'Custom URL', 'mmww'), 
-			'attachment' => __( 'Attachment Page', 'mmww'),
-			'media' => __( 'Media File', 'mmww'),
-			'none' => __( 'None', 'mmww'),
-			'always' => __( '(Always)', 'mmww'),
-		);
-		$pattern = '<input type="radio" id="mmww_admin_audio_shortcode" name="mmww_options[audio_shortcode]" value="%1$s" %2$s> %3$s';
-		
-		$f = array();
-		foreach ($choices as $i => $k) {
-			$checked =($choice == $i) ? 'checked' : '';
-			$f[] = sprintf($pattern,$i,$checked,$k );
-		}
-		echo implode('&nbsp;&nbsp;&nbsp;&nbsp',$f);
-		unset ($f);
-	}
 	
 	add_settings_field(
 			'mmww_admin_audio_shortcode',
@@ -66,14 +88,6 @@ function mmww_admin_page() {
 			'mmww_admin_audio'
 	);
 	
-	
-
-	function mmww_admin_validate_options( $input ) {
-		$valid = array();
-		$valid['audio_shortcode'] = $input['audio_shortcode'];
-		return $valid;
-	}
-		
 	
 	?>
     <form action="options.php" method="post">
@@ -89,4 +103,6 @@ function mmww_admin_page() {
     </form></div>
 
     <?php
+    
+    
 }

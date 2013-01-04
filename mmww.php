@@ -40,12 +40,6 @@ set_include_path( $saved . PATH_SEPARATOR . MMWW_PLUGIN_DIR . '/code' );
 
 add_action( 'init', 'mmww_do_everything' );
 
-/* check version and upgrade plugin if need be. */
-if (MMWW_VERSION_NUM != ($opt = get_option('mmww_version', '0.0.0'))) {
-	/* do update procedure here as needed */
-	update_option('mmww_version', MMWW_VERSION_NUM);
-}
-
 function mmww_do_everything () {
 
 	if ( is_admin() && current_user_can ( 'manage_options' )) {
@@ -60,10 +54,18 @@ function mmww_activate() {
 	if ( version_compare( get_bloginfo( 'version' ), '3.1', '<' ) ) {
 		deactivate_plugins( basename( __FILE__ ) ); /* fail activation */
 	}
-	/* make sure the options are loaded, but don't overwrite version */
-	add_option('mmww_version', MMWW_VERSION_NUM, false);
+	/* make sure the options are loaded, but don't overwrite existing version */
+	add_option('mmww_version', MMWW_VERSION_NUM, false, 'no');
+
+	/* check version and upgrade plugin if need be. */
+	if (MMWW_VERSION_NUM != ($opt = get_option('mmww_version', '0.0.0'))) {
+		/* do update procedure here as needed */
+		update_option('mmww_version', MMWW_VERSION_NUM);
+	}
+	
+	/* handle options settings defaults */
 	$o = array (
 		'audio_shortcode' => 'disabled', /* Custom, Attachment, Media, None, disabled */
-		);
-	add_option('mmww_options', $o, false);
+	);
+	add_option('mmww_options', $o, false, 'no');
 }
