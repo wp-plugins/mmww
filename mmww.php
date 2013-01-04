@@ -30,8 +30,8 @@ if (!defined('MMWW_POSTMETA_KEY')) {
 }
 
 //TODO make this go away
-//ini_set('display_errors', 'On');
-//error_reporting(E_ALL);
+ini_set('display_errors', 'On');
+error_reporting(E_ALL);
 
 register_activation_hook( __FILE__, 'mmww_activate' );
 
@@ -60,8 +60,10 @@ function mmww_activate() {
 	if ( version_compare( get_bloginfo( 'version' ), '3.1', '<' ) ) {
 		deactivate_plugins( basename( __FILE__ ) ); /* fail activation */
 	}
-	/* make sure the option is loaded, but don't overwrite it. */
-	add_option('mmww_version', MMWW_VERSION_NUM);
+	/* make sure the options are loaded, but don't overwrite version */
+	add_option('mmww_version', MMWW_VERSION_NUM, false);
+	$o = array (
+		'audio_shortcode' => 'disabled', /* Custom, Attachment, Media, None, disabled */
+		);
+	add_option('mmww_options', $o, false);
 }
-
-?>

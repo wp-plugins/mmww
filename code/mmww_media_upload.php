@@ -1,8 +1,54 @@
 <?php
 
-/* metadata display filters */
+//add_action( 'media_buttons', 'mmww_media_buttons' );
+
+/**
+ * Adds the audio button to the editor; this could be a nice affordance
+ * but really doesn't add anything special.
+ * 
+ * @see http://core.trac.wordpress.org/ticket/22186
+ *
+ * @since 2.5.0
+ *
+ * @param string $editor_id
+ */
+function mmww_media_buttons($editor_id = 'audio') {
+	$post = get_post();
+	if ( ! $post && ! empty( $GLOBALS['post_ID'] ) )
+		$post = $GLOBALS['post_ID'];
+
+	wp_enqueue_media( array(
+		'post' => $post
+	) );
+
+	$img = '<span class="wp-media-buttons-icon"></span> ';
+
+	echo '<a href="#" class="button insert-media add_media" data-editor="' .
+	      esc_attr( $editor_id ) . 
+	      '" title="' . esc_attr__( 'Add Audio' ) . '">' . 
+	      $img . __( 'Add Audio' ) . '</a>';
+}
+
+
+
+
+/* default tab to show */
+//add_filter('media_upload_default_tab', 'mmww_media_upload_default_tab');
+function mmww_media_upload_default_tab($tab)
+{
+	return 'library';  //or type, type_url, gallery
+}
+
+/* metadata display filters; internal to mmww */
 
 add_filter('mmww_filter_metadata', 'mmww_filter_all_metadata' ,10, 2);
+
+/**
+ * hook function for filter internal to mmww 
+ * @param array $meta of metadata key/val s
+ * @param string $mime type of file
+ * @return array of metadata
+ */
 function mmww_filter_all_metadata ($meta, $mime) {
 	
 	/* fix up the copyright statement to present in a compliant way */
@@ -33,58 +79,6 @@ function mmww_filter_all_metadata ($meta, $mime) {
 		}
 	}
 	return $meta;
-}
-
-//add_filter('mmww_filter_metadata', 'mmww_filter_image_metadata' ,8, 2);
-//function mmww_filter_image_metadata ($meta, $mime) {
-//	return $meta;
-//}
-
-//add_filter('mmww_filter_metadata', 'mmww_filter_audio_metadata' ,8, 2);
-//function mmww_filter_audio_metadata ($meta, $mime) {
-//	return $meta;
-//}
-
-//add_filter('mmww_filter_metadata', 'mmww_filter_application_metadata' ,8, 2);
-//function mmww_filter_application_metadata ($meta, $mime) {
-//	return $meta;
-//}
-
-
-
-add_filter('media_send_to_editor', 'mmww_audio_send_to_editor', 11, 3);
-
-/**
- * adjust hyperlinks and other embed codes for audio shortcode upon sending them to the editor
- *
- * @since 2.5.0
- *
- * @param string $html  the string to be inserted in the editor, filtered
- * @param int $attachment_id attachment id
- * @param array $attachment
- * @return filtered html string
- */
-function mmww_audio_send_to_editor($html, $attachment_id, $attachment) {
-	$post = get_post($attachment_id);	
-	/* double check we're in the right neighborhood before bashing the html */
-	$mime = $post->post_mime_type;
-	if ( $mime == 'audio/mpeg'  && stripos( $html,'[audio ' )) {
-		/* correct mime type AND attempt to post an audio shortcode. */
-		$meta = array();
-		$jsonmeta = get_post_meta($post->ID,MMWW_POSTMETA_KEY,true);
-		if (! empty ($jsonmeta)) {
-			$meta = json_decode($jsonmeta, true);
-		}
-		/* filter the metadata for display according to the MIME type, extensibly */
-		/* audio file; insert a player button matching the Jetpack [audio] shortcode syntax */
-		$url = wp_get_attachment_url($post->ID);
-		$files = esc_attr($url);
-		/* the [audio[ titles and artists lists are comma separated in Jetpack shortcode, so scrub embedded commas */
-		$titles = mmww_nocommas(mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 'album')));
-		$artists = mmww_nocommas(mmww_getmetastring ('; ',$meta, array('creditlead', 'credit', 'creditconductor')));
-		$html = "[audio $files|titles=$titles|artists=$artists]";
-	}		
-	return $html;
 }
 
 /**
@@ -123,9 +117,6 @@ function mmww_wp_read_image_metadata ($meta, $file, $sourceImageType) {
 	$filetype = $ft['type'];
 	$filetype = mmww_getfiletype($filetype);
 	
-	/* try to get the metadata from the various sources */
-	require_once 'xmp.php';
-	
 	/* merge up the metadata  -- later merges  overwrite earlier ones*/
 	
 	switch ($filetype) {
@@ -154,6 +145,7 @@ function mmww_wp_read_image_metadata ($meta, $file, $sourceImageType) {
 	}
 
 	/* all kinds of files (including pdf) */
+	require_once 'xmp.php';	
 	$newmeta =  mmww_get_xmp_metadata ($file);
 	$meta = array_merge($meta, $newmeta);
 
@@ -161,7 +153,7 @@ function mmww_wp_read_image_metadata ($meta, $file, $sourceImageType) {
 }
 
 /**
- * remove all commas and apostrophes in a string
+ * remove all commas and apostrophes from a string
  * @param string $s
  * @return string with blanks where commas and apostrophes were.
  */
@@ -218,7 +210,7 @@ function mmww_get_attachment_path( $post_id = 0 ) {
 				$result = $uploads['basedir'] . substr( $file, strpos($file, 'wp-content/uploads') + 18 );
 			}
 			else {
-				$result = $uploads['basedir'] . "/$file"; //Its a newly uploaded file, therefor $file is relative to the basedir.
+				$result = $uploads['basedir'] . "/$file"; //Its a newly uploaded file, therefore $file is relative to the basedir.
 			}
 		}
 	}
@@ -229,18 +221,37 @@ function mmww_get_attachment_path( $post_id = 0 ) {
 	return $result;
 }
 
-add_filter('attachment_fields_to_edit', 'mmww_attachment_fields_to_edit',20,2);
+add_filter ('wp_prepare_attachment_for_js', 'mmww_wp_prepare_attachment_for_js', 20,3);
+
 /**
- *  Edit fields in the media upload editor
- * @param associative array of fields $file
- * @param associative array describing $post
- * @return updated array of fields
+ * update attachment details for display in media manager 
+ * @since 3.5
+ * @param array $response attachment details.
+ * @param mixed $attachment Attachment ID or object.
+ * @param mixed $meta array of metadata. meta['image_meta'] contains this plugin's stuff 
+ * @return array Array of attachment details.
  */
-function mmww_attachment_fields_to_edit($fields,$post) {
-	$metadata_refreshed = false;
-	$mime = get_post_mime_type($post->ID);
-	$file = mmww_get_attachment_path( $post->ID );
+function mmww_wp_prepare_attachment_for_js ($response, $attachment, $meta) {
 	
+	/* the $meta parameter isn't always valid it seems */
+	if ( !empty ( $meta ) && !empty ( $meta['image_meta'] )  ) {
+		$im = $meta['image_meta'];
+		$response['caption'] = $im['caption'];
+	}
+	return $response;
+}
+
+
+//add_filter('media_meta', 'mmww_media_meta', 20, 2);
+
+/**
+ * fetch media metadata 
+ * @param mixed $inmeta metadata array or maybe empty string
+ * @param object $post
+ * @return array metadata
+ */
+function mmww_media_meta ($inmeta, $post) {
+
 	/* do we have metadata already stored for this one? */
 	$jsonmeta = get_post_meta($post->ID,MMWW_POSTMETA_KEY,true);
 	if (! empty ($jsonmeta)) {
@@ -253,15 +264,54 @@ function mmww_attachment_fields_to_edit($fields,$post) {
 		if ($file) {
 			$meta = wp_read_image_metadata( $file );
 		}
-		/* filter the metadata for display according to the MIME type, extensibly */
-		$meta = apply_filters( 'mmww_filter_metadata', $meta, $mime );
 		/* pack it up to store in the post meta table */
 		$jsonmeta = json_encode ($meta);
 		add_post_meta($post->ID,MMWW_POSTMETA_KEY,$jsonmeta);
 		$metadata_refreshed = true;
 	}
 	
-		/* this field is only needed when embedding an attachment */
+	
+	if ( is_array  ($inmeta) ) {
+		return array_merge($inmeta, $meta);
+	}
+	return $meta;
+}
+
+/**
+ * get an html table made of an item's metadata
+ * @param array $meta of metadata strings
+ * @return string html
+ */
+function mmww_get_metadata_table ($meta) {
+	/* filter the metadata for display according to the MIME type, extensibly */
+	$meta = apply_filters( 'mmww_filter_metadata', $meta, $mime );
+	$string .= '<table><tr><td>tag</td><td>value</td></tr>' . "\n";
+	foreach ($meta as $tag => $value) {
+		$string .= '<tr><td>' . $tag . '</td><td>' . $value .'</td></tr>' . "\n";
+	}
+	$string .= '</table>' . "\n";
+
+	return $string;
+}
+
+
+if ( version_compare( get_bloginfo( 'version' ), '3.5', '<' ) ) {
+	add_filter('attachment_fields_to_edit', 'mmww_attachment_fields_to_edit',20,2);
+}
+/**
+ *  Edit fields in the media upload editor
+ * @version 3.4 and earlier
+ * @param associative array of fields $file
+ * @param associative array describing $post
+ * @return updated array of fields
+ */
+function mmww_attachment_fields_to_edit($fields,$post) {
+	$metadata_refreshed = false;
+	$mime = get_post_mime_type($post->ID);
+	$file = mmww_get_attachment_path( $post->ID );
+	$meta = mmww_media_meta ( '', $post );
+	
+	/* this field is only needed when embedding an attachment */
 	if (isset( $fields['url'] ) && isset( $fields['url']['html'] ) ) {
 		if ($mime == 'audio/mpeg') {
 			/* audio file; insert a player button matching the Jetpack [audio] shortcode syntax */
@@ -292,15 +342,61 @@ function mmww_attachment_fields_to_edit($fields,$post) {
 			$fields['image_alt']['value'] = mmww_getmetastring ('; ',$meta, array('title','credit'));
 		}		
 
-		$string .= '<table><tr><td>tag</td><td>value</td></tr>' . "\n";
-		foreach ($meta as $tag => $value) {
-			$string .= '<tr><td>' . $tag . '</td><td>' . $value .'</td></tr>' . "\n";
-		}
-		$string .= '</table>' . "\n";
-		
-		$fields['post_content']['value'] = $string;
+		$fields['post_content']['value'] = mmww_get_metadata_table ($meta);
 	}
 	return $fields;
 }
+
+
+add_filter('media_send_to_editor', 'mmww_audio_send_to_editor', 11, 3);
+
+/**
+ * adjust hyperlinks and other embed codes for audio shortcode upon sending them to the editor
+ *
+ * @since 2.5.0
+ *
+ * @param string $html  the string to be inserted in the editor, filtered
+ * @param int $attachment_id attachment id
+ * @param array $attachment
+ * @return filtered html string
+ */
+function mmww_audio_send_to_editor($html, $attachment_id, $attachment) {
+	$post = get_post($attachment_id);
+	/* double check we're in the right neighborhood before bashing the html */
+	$mime = $post->post_mime_type;
+	if ( $mime == 'audio/mpeg' ) {
+		$meta = array();
+		$result = '';
+		$jsonmeta = get_post_meta($post->ID,MMWW_POSTMETA_KEY,true);
+		if (! empty ($jsonmeta)) {
+			$meta = json_decode($jsonmeta, true);
+			$url = wp_get_attachment_url($post->ID);
+			$files = esc_attr($url);
+			/* the [audio[ titles and artists lists are comma separated in Jetpack shortcode, so scrub embedded commas */
+			$titles = mmww_nocommas(mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 'album')));
+			$artists = mmww_nocommas(mmww_getmetastring ('; ',$meta, array('creditlead', 'credit', 'creditconductor')));
+			$result = "[audio $files|titles=$titles|artists=$artists]";
+		}
+		
+		if ( version_compare( get_bloginfo( 'version' ), '3.5', '<' ) ) {
+			/* pre-3.5 function ... fix up already-created [audio] shortcode */
+			if ( stripos( $html,'[audio ' )) {
+				/* correct mime type AND attempt to post an audio shortcode. */
+				/* filter the metadata for display according to the MIME type, extensibly */
+				/* audio file; insert a player button matching the Jetpack [audio] shortcode syntax */
+				$html = $result;
+			}
+		}
+		else {
+			//TODO this probably is not the right criterion
+			if (! empty ($result)) {
+				$html = $result . '###'. $html;
+			}
+		}
+	}
+	return $html;
+}
+
+
 
 ?>
