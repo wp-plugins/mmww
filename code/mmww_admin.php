@@ -50,6 +50,24 @@ function mmww_admin_audio_shortcode_text() {
 	unset ($f);
 }
 
+/**
+ * emit a text question
+ */
+function mmww_admin_text($item) {
+	$options = get_option( 'mmww_options' );
+	$value = (empty( $options[$item] )) ? ' ' : $options[$item];
+	$pattern = '<input type="text" id="mmww_admin_%2$s" name="mmww_options[%2$s]" value="%1$s" size="80" />';
+	$pattern = sprintf ($pattern, $value, $item);
+	return $pattern;
+}
+
+function mmww_admin_audio_title_text() {
+	echo mmww_admin_text('audio_title') . "\n";
+}
+function mmww_admin_audio_caption_text() {
+	echo mmww_admin_text('audio_caption') . "\n";
+}
+
 
 /**
  * validate the options settings
@@ -59,10 +77,10 @@ function mmww_admin_audio_shortcode_text() {
 function mmww_admin_validate_options( $input ) {
 	$valid = array();
 	$valid['audio_shortcode'] = $input['audio_shortcode'];
+	$valid['audio_title'] = $input['audio_title'];
+	$valid['audio_title'] = $input['audio_title'];
 	return $valid;
 }
-
-
 
 function mmww_admin_page() {
 	load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
@@ -84,6 +102,21 @@ function mmww_admin_page() {
 			'mmww_admin_audio_shortcode',
 			__( 'Insert audio player shortcode when author chooses this <em>Link To</em> style', 'mmww' ),
 			'mmww_admin_audio_shortcode_text',
+			'mmww',
+			'mmww_admin_audio'
+	);
+
+	add_settings_field(
+			'mmww_admin_audio_title',
+			__( 'Audio title template', 'mmww' ),
+			'mmww_admin_audio_title_text',
+			'mmww',
+			'mmww_admin_audio'
+	);
+	add_settings_field(
+			'mmww_admin_audio_caption',
+			__( 'Audio caption template', 'mmww' ),
+			'mmww_admin_audio_caption_text',
 			'mmww',
 			'mmww_admin_audio'
 	);

@@ -66,6 +66,9 @@ function mmww_activate() {
 	/* handle options settings defaults */
 	$o = array (
 		'audio_shortcode' => 'disabled', /* Custom, Attachment, Media, None, disabled */
+		'audio_caption' => '{credit} {title} {album} {year}',
+		'audio_title' => '{title}--{album}',
+		
 	);
 	add_option('mmww_options', $o, false, 'no');
 }

@@ -3,7 +3,7 @@
 //add_action( 'media_buttons', 'mmww_media_buttons' );
 
 /**
- * Adds the audio button to the editor; this could be a nice affordance
+ * Adds an audio button to the editor; this could be a nice affordance
  * but really doesn't add anything special.
  * 
  * @see http://core.trac.wordpress.org/ticket/22186
@@ -28,9 +28,6 @@ function mmww_media_buttons($editor_id = 'audio') {
 	      '" title="' . esc_attr__( 'Add Audio' ) . '">' . 
 	      $img . __( 'Add Audio' ) . '</a>';
 }
-
-
-
 
 /* default tab to show */
 //add_filter('media_upload_default_tab', 'mmww_media_upload_default_tab');
@@ -118,7 +115,6 @@ function mmww_wp_read_image_metadata ($meta, $file, $sourceImageType) {
 	$filetype = mmww_getfiletype($filetype);
 	
 	/* merge up the metadata  -- later merges  overwrite earlier ones*/
-	
 	switch ($filetype) {
 		case 'audio':
 			require_once 'id3.php';
@@ -233,7 +229,7 @@ add_filter ('wp_prepare_attachment_for_js', 'mmww_wp_prepare_attachment_for_js',
  */
 function mmww_wp_prepare_attachment_for_js ($response, $attachment, $meta) {
 	
-	/* the $meta parameter isn't always valid it seems */
+	/* the $meta parameter isn't always present */
 	if ( !empty ( $meta ) && !empty ( $meta['image_meta'] )  ) {
 		$im = $meta['image_meta'];
 		$response['caption'] = $im['caption'];
