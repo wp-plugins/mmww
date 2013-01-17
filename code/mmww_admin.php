@@ -52,22 +52,16 @@ function mmww_admin_audio_shortcode_text() {
 
 /**
  * emit a text question
+ * @param string $item contains the options item name ... e.g. audio_caption
  */
 function mmww_admin_text($item) {
 	$options = get_option( 'mmww_options' );
 	$value = (empty( $options[$item] )) ? ' ' : $options[$item];
 	$pattern = '<input type="text" id="mmww_admin_%2$s" name="mmww_options[%2$s]" value="%1$s" size="80" />';
 	$pattern = sprintf ($pattern, $value, $item);
-	return $pattern;
+	echo $pattern;
+	echo "\n";
 }
-
-function mmww_admin_audio_title_text() {
-	echo mmww_admin_text('audio_title') . "\n";
-}
-function mmww_admin_audio_caption_text() {
-	echo mmww_admin_text('audio_caption') . "\n";
-}
-
 
 /**
  * validate the options settings
@@ -75,10 +69,11 @@ function mmww_admin_audio_caption_text() {
  * @return validated array
  */
 function mmww_admin_validate_options( $input ) {
+	$codes = explode('|','audio_shortcode|audio_title|audio_caption');
 	$valid = array();
-	$valid['audio_shortcode'] = $input['audio_shortcode'];
-	$valid['audio_title'] = $input['audio_title'];
-	$valid['audio_title'] = $input['audio_title'];
+	foreach ($codes as $code) {
+		$valid[$code] = $input[$code];
+	}
 	return $valid;
 }
 
@@ -109,16 +104,18 @@ function mmww_admin_page() {
 	add_settings_field(
 			'mmww_admin_audio_title',
 			__( 'Audio title template', 'mmww' ),
-			'mmww_admin_audio_title_text',
+			'mmww_admin_text',
 			'mmww',
-			'mmww_admin_audio'
+			'mmww_admin_audio',
+			'audio_title'
 	);
 	add_settings_field(
 			'mmww_admin_audio_caption',
 			__( 'Audio caption template', 'mmww' ),
-			'mmww_admin_audio_caption_text',
+			'mmww_admin_text',
 			'mmww',
-			'mmww_admin_audio'
+			'mmww_admin_audio',
+			'audio_caption'
 	);
 	
 	

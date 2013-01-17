@@ -117,6 +117,7 @@ function mmww_wp_read_image_metadata ($meta, $file, $sourceImageType) {
 	/* merge up the metadata  -- later merges  overwrite earlier ones*/
 	switch ($filetype) {
 		case 'audio':
+			require_once 'xmp.php';
 			require_once 'id3.php';
 			$newmeta = mmww_get_id3_metadata ($file);
 			$meta = array_merge($meta, $newmeta);
@@ -141,7 +142,7 @@ function mmww_wp_read_image_metadata ($meta, $file, $sourceImageType) {
 	}
 
 	/* all kinds of files (including pdf) */
-	require_once 'xmp.php';	
+	require_once 'xmp.php';
 	$newmeta =  mmww_get_xmp_metadata ($file);
 	$meta = array_merge($meta, $newmeta);
 
@@ -217,6 +218,55 @@ function mmww_get_attachment_path( $post_id = 0 ) {
 	return $result;
 }
 
+/**
+ * make a desciption or caption string from the metadata and the template
+ * @param array $meta metadata array
+ * @param string $item which template (e.g.  audio_caption)
+ *
+ * @return description or caption string
+ */
+function mmww_make_string( $meta, $item ) {
+	$r = ''; /* result accumulator */
+	$options = get_option( 'mmww_options' );
+	$t = (empty( $options[$item] )) ? '' : $options[$item]; /* the template */
+	while ( ! empty ($t) > 0) {
+		$p = strpos ($t, '{');
+		if ($p) {   /* position of next {token} */
+			/* move the stuff before the token to the result string */
+			$r .= substr($t,0,$p);
+			$t = substr($t,$p);
+			$p = strpos($t,'}'); /* position of next } */
+				
+			if ($p) {
+				/* grab the token from the stream */
+				$p += 1; /* include the ending } */
+				$token = substr($t,0,$p);
+				$t = substr($t,$p);
+				/* look up the token in the metadata */
+				$token = substr($token, 1, -1);
+				if ( ! empty ($item[$token])) {
+					/* found it, use it. */
+					$r .= $item[$token];
+				} else {
+					/* special case: metadata in template but not given in the item */
+					/* not found... if the next pattern character is blank, skip it */
+					if (' ' == substr($t,0,1)) {
+						$t = substr($t,1);
+					}
+				}
+			} else { /* if there's no closing brace, eat the rest of the template */
+				$r .= $t;
+				$t = '';
+			}
+		} else {
+			/* if there's no remaining opening brace, eat the rest of the template */
+			$r .= $t;
+			$t = '';
+		}
+	} /* end while ! empty */
+	return $r;
+}
+
 add_filter ('wp_prepare_attachment_for_js', 'mmww_wp_prepare_attachment_for_js', 20,3);
 
 /**
@@ -228,12 +278,16 @@ add_filter ('wp_prepare_attachment_for_js', 'mmww_wp_prepare_attachment_for_js',
  * @return array Array of attachment details.
  */
 function mmww_wp_prepare_attachment_for_js ($response, $attachment, $meta) {
-	
 	/* the $meta parameter isn't always present */
 	if ( !empty ( $meta ) && !empty ( $meta['image_meta'] )  ) {
 		$im = $meta['image_meta'];
-		$response['caption'] = $im['caption'];
+		if ('audio' == $response['type']) {
+			$response['caption'] = mmww_make_string($im,'audio_caption');
+			$response['description'] = mmww_make_string($im,'audio_description');
+			$response['title'] = mmww_make_string($im,'audio_title');
+		}
 	}
+	
 	return $response;
 }
 
