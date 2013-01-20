@@ -4,15 +4,14 @@
 
 /* metadata display filters; internal to mmww */
 
-add_filter('mmww_filter_metadata', 'mmww_filter_all_metadata' ,10, 2);
+add_filter('mmww_filter_metadata', 'mmww_filter_all_metadata' ,10, 1);
 
 /**
  * hook function for filter internal to mmww 
- * @param array $meta of metadata key/val s
- * @param string $mime type of file
+ * @param array $meta of metadata key/val strings
  * @return array of metadata
  */
-function mmww_filter_all_metadata ($meta, $mime) {
+function mmww_filter_all_metadata ($meta) {
 	
 	/* fix up the copyright statement to present in a compliant way */
 	if ( ! empty ($meta['copyright']) ) {
@@ -141,11 +140,13 @@ function mmww_apply_template_metadata ($meta, $file, $sourceImageType) {
 		return $meta;
 	}
 	
+	$cleanmeta = apply_filters( 'mmww_filter_metadata', $meta );
+	
 	$codes = explode('|','title|caption');
 	$newmeta = array();	
 	foreach ($codes as $code) {
 		$codetype = $meta['mmww_type'].'_'.$code;
-		$newmeta[$code] = mmww_make_string ($meta,$codetype);
+		$newmeta[$code] = mmww_make_string ($cleanmeta,$codetype);
 	}
 	
 	$meta = array_merge($meta, $newmeta);
@@ -301,7 +302,7 @@ function mmww_wp_prepare_attachment_for_js ($response, $attachment, $meta) {
  */
 function mmww_get_metadata_table ($meta) {
 	/* filter the metadata for display according to the MIME type, extensibly */
-	$meta = apply_filters( 'mmww_filter_metadata', $meta, $mime );
+	$meta = apply_filters( 'mmww_filter_metadata', $meta );
 	$string .= '<table><tr><td>tag</td><td>value</td></tr>' . "\n";
 	foreach ($meta as $tag => $value) {
 		$string .= '<tr><td>' . $tag . '</td><td>' . $value .'</td></tr>' . "\n";

@@ -46,19 +46,39 @@ $mmww_xmp_audio_metadata_list = array (
  * @return SimpleXMLElement or false if no XMP was found
  */
 function mmww_get_xmp ($file) {
-	/* find a xmp metadata stanza in the first 128k of the file 
-	 * this is indeed a kludge, but it seems to work.
-	 */
-	$content = file_get_contents($file, false, NULL,0, 128*1024);
+	/* find a xmp metadata stanza in the file */
 	$ts = '<x:xmpmeta';
 	$xmp = false;
-	/* find the start */
-	$s = strpos($content, $ts);
-	if ($s) {
+	$chunksize = 64*1024;
+	$maxsize = $chunksize;
+	$content = '';
+	$s = False;
+	$size = filesize($file);
+	$start = 0;
+	while ($start < $size) {
+		/* read twice the chunksize */
+		$content = file_get_contents ($file, false, NULL, $start, $chunksize+$chunksize);
+		$s = strpos($content, $ts);
+		if ($s === False) {
+			/* move ahead by the chunksize */
+			$start += $chunksize;
+		} else  {
+			/* found the start, stop reading */
+			$start += $s;
+			break;
+		}
+	}
+	if ($start < $size ) {
+		/* read the maxsize from the start point of the stanza */
+		$content = file_get_contents ($file, false, NULL, $start, $maxsize);
+		$s = strpos($content, $ts);		
+	}
+	if (! ($s === False)) {
+		
 		/* find the end */
 		$te = '</x:xmpmeta>';	
 		$e = strpos($content, $te, $s+strlen($ts));
-		if ($e) {
+		if (! ($e === False)) {
 			$e += strlen($te);
 			/* found the stanza, use it */
 			$xmp = simplexml_load_string("<?xml version='1.0'?>\n" . substr($content, $s, $e - $s));

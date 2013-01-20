@@ -66,8 +66,12 @@ function mmww_activate() {
 	/* handle options settings defaults */
 	$o = array (
 		'audio_shortcode' => 'disabled', /* Custom, Attachment, Media, None, disabled */
-		'audio_caption' => '{credit} {title} {album} {year}',
-		'audio_title' => '{title}--{album}',
+		'audio_caption' => '{credit} {title} {album} {year} {copyright}',
+		'audio_title' => '{title}',
+		'image_caption' => '{title} {credit} {copyright}',
+		'image_title' => '{title}',
+		'application_caption' => '{title} {credit} {caption} {copyright}',
+		'application_title' => '{title} PDF',
 		
 	);
 	add_option('mmww_options', $o, false, 'no');
