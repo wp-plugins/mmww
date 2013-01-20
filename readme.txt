@@ -3,7 +3,7 @@ Contributors: olliejones
 Donate link: http://joebackward.wordpress.com/2012/11/25/mmww-media-metadata-workfilow-wizard-plugin-for-wordpress-3-4/
 Tags: media, audio, video, images, metadata, exif, id3, xmp, iptc, workflow
 Requires at least: 3.0.1
-Tested up to: 3.4.2
+Tested up to: 3.5
 Stable tag: 0.9.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html

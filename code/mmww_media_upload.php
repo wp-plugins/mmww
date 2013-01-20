@@ -2,40 +2,6 @@
 
 //add_action( 'media_buttons', 'mmww_media_buttons' );
 
-/**
- * Adds an audio button to the editor; this could be a nice affordance
- * but really doesn't add anything special.
- * 
- * @see http://core.trac.wordpress.org/ticket/22186
- *
- * @since 2.5.0
- *
- * @param string $editor_id
- */
-function mmww_media_buttons($editor_id = 'audio') {
-	$post = get_post();
-	if ( ! $post && ! empty( $GLOBALS['post_ID'] ) )
-		$post = $GLOBALS['post_ID'];
-
-	wp_enqueue_media( array(
-		'post' => $post
-	) );
-
-	$img = '<span class="wp-media-buttons-icon"></span> ';
-
-	echo '<a href="#" class="button insert-media add_media" data-editor="' .
-	      esc_attr( $editor_id ) . 
-	      '" title="' . esc_attr__( 'Add Audio' ) . '">' . 
-	      $img . __( 'Add Audio' ) . '</a>';
-}
-
-/* default tab to show */
-//add_filter('media_upload_default_tab', 'mmww_media_upload_default_tab');
-function mmww_media_upload_default_tab($tab)
-{
-	return 'library';  //or type, type_url, gallery
-}
-
 /* metadata display filters; internal to mmww */
 
 add_filter('mmww_filter_metadata', 'mmww_filter_all_metadata' ,10, 2);
@@ -87,12 +53,11 @@ function mmww_getfiletype ($f) {
 	$ff = explode( '/', $f );
 	$filetype = $ff[0];
 	$filetype = strtolower( $filetype );
-	return $filetype;
-	
+	return $filetype;	
 }
 
-
-add_filter('wp_read_image_metadata', 'mmww_wp_read_image_metadata',11,3);
+add_filter('wp_read_image_metadata', 'mmww_read_media_metadata',11,3);
+add_filter('wp_read_image_metadata', 'mmww_apply_template_metadata',90,3);
 
 /**
  * filter to extend the stuff in wp_admin/includes/image.php
@@ -104,48 +69,86 @@ add_filter('wp_read_image_metadata', 'mmww_wp_read_image_metadata',11,3);
  * @param string $sourceImageType encoding of a few MIME types
  * @return bool|array False on failure. Image metadata array on success.
  */
-function mmww_wp_read_image_metadata ($meta, $file, $sourceImageType) {
-		
+function mmww_read_media_metadata ($meta, $file, $sourceImageType) {
+
 	if ( ! file_exists( $file ) ) {
 		return $meta;
 	}
 	
+	$meta_accum = array();
+
 	$ft = wp_check_filetype( $file );
 	$filetype = $ft['type'];
 	$filetype = mmww_getfiletype($filetype);
-	
+
 	/* merge up the metadata  -- later merges  overwrite earlier ones*/
 	switch ($filetype) {
 		case 'audio':
 			require_once 'xmp.php';
 			require_once 'id3.php';
 			$newmeta = mmww_get_id3_metadata ($file);
-			$meta = array_merge($meta, $newmeta);
+			$meta_accum = array_merge($meta_accum, $newmeta);
 			$newmeta = mmww_get_xmp_audio_metadata ($file);
-			$meta = array_merge($meta, $newmeta);
+			$meta_accum = array_merge($meta_accum, $newmeta);
+			$meta_accum['mmww_type'] = $filetype;
 			break;
 
 		case 'image':
 			require_once 'exif.php';
 			$newmeta = mmww_get_exif_metadata ($file);
-			$meta = array_merge($meta, $newmeta);
+			$meta_accum = array_merge($meta_accum, $newmeta);
 			require_once 'iptc.php';
 			$newmeta = mmww_get_iptc_metadata ($file);
-			$meta = array_merge($meta, $newmeta);
+			$meta_accum = array_merge($meta_accum, $newmeta);
+			$meta_accum['mmww_type'] = $filetype;
 			break;
 
 		case 'application':
+			$meta_accum['mmww_type'] = $filetype;
+			/* this is for pdf. Processing below for that */
 			break;
-			
+				
 		default:
 			$meta['warning'] = __('Unrecognized media type in file ','mmww') . "$file ($filetype)";
 	}
 
-	/* all kinds of files (including pdf) */
+	/* all kinds of files (including pdf), look for Adobe XMP publication metadata */
 	require_once 'xmp.php';
 	$newmeta =  mmww_get_xmp_metadata ($file);
-	$meta = array_merge($meta, $newmeta);
+	if (! empty ($newmeta)) {
+		$meta_accum = array_merge($meta_accum, $newmeta);
+		$meta_accum['mmww_type'] = $filetype;
+	}
+	
+	$meta = array_merge($meta, $meta_accum);
 
+	return $meta;
+}
+
+
+/**
+ * filter to use the metadata to construct title and caption
+ *        using appropriate templates
+ * @param array $meta  associative array containing pre-loaded metadata
+ * @param string $file file name
+ * @param string $sourceImageType encoding of a few MIME types
+ * @return bool|array False on failure. Image metadata array on success.
+ */
+function mmww_apply_template_metadata ($meta, $file, $sourceImageType) {
+
+	if ( empty ($meta) && empty ($meta['mmww_type'])) {
+		/* if there's no mmww metadata detected, don't do anything more */
+		return $meta;
+	}
+	
+	$codes = explode('|','title|caption');
+	$newmeta = array();	
+	foreach ($codes as $code) {
+		$codetype = $meta['mmww_type'].'_'.$code;
+		$newmeta[$code] = mmww_make_string ($meta,$codetype);
+	}
+	
+	$meta = array_merge($meta, $newmeta);
 	return $meta;
 }
 
@@ -182,7 +185,7 @@ function mmww_getmetastring($glue, $meta, $tags) {
 }
 
 /**
- * Retrieve the pathname for an attachment's file.
+ * Retrieve the pathname in the file system for an attachment's file.
  *   (cribbed from post.php)
  * @since 2.1.0
  *
@@ -229,45 +232,44 @@ function mmww_make_string( $meta, $item ) {
 	$r = ''; /* result accumulator */
 	$options = get_option( 'mmww_options' );
 	$t = (empty( $options[$item] )) ? '' : $options[$item]; /* the template */
+	/* this is a parse loop that handles text {token} text {token} style templates. */
 	while ( ! empty ($t) > 0) {
 		$p = strpos ($t, '{');
-		if ($p) {   /* position of next {token} */
+		if (!($p===False)) {   /* start position of next {token} */
 			/* move the stuff before the token to the result string */
-			$r .= substr($t,0,$p);
-			$t = substr($t,$p);
-			$p = strpos($t,'}'); /* position of next } */
-				
-			if ($p) {
+			$r .= substr($t,0,$p);  $t = substr($t,$p);
+
+			$p = strpos($t,'}'); /* position of next } */	
+			if (!($p === False)) {
 				/* grab the token from the stream */
 				$p += 1; /* include the ending } */
 				$token = substr($t,0,$p);
 				$t = substr($t,$p);
 				/* look up the token in the metadata */
-				$token = substr($token, 1, -1);
-				if ( ! empty ($item[$token])) {
+				$token = substr($token, 1, -1); /* take off first and last brace chars */
+				if ( ! empty ($meta[$token])) {
 					/* found it, use it. */
-					$r .= $item[$token];
+					$r .= $meta[$token];
 				} else {
-					/* special case: metadata in template but not given in the item */
-					/* not found... if the next pattern character is blank, skip it */
+					/* special case: metadata name in template but not present in the item
+					 * if the next template character is blank, skip it
+					 */
 					if (' ' == substr($t,0,1)) {
 						$t = substr($t,1);
 					}
 				}
-			} else { /* if there's no closing brace, eat the rest of the template */
-				$r .= $t;
-				$t = '';
+			} else { /* if there's no closing brace, use the rest of the template */
+				$r .= $t;  $t = '';
 			}
 		} else {
-			/* if there's no remaining opening brace, eat the rest of the template */
-			$r .= $t;
-			$t = '';
+			/* if there's no remaining opening brace, use the rest of the template */
+			$r .= $t; $t = '';
 		}
-	} /* end while ! empty */
+	} /* end while template is ! empty */
 	return $r;
 }
 
-add_filter ('wp_prepare_attachment_for_js', 'mmww_wp_prepare_attachment_for_js', 20,3);
+//TODO I don't think we  need this one. add_filter ('wp_prepare_attachment_for_js', 'mmww_wp_prepare_attachment_for_js', 20,3);
 
 /**
  * update attachment details for display in media manager 
@@ -291,41 +293,6 @@ function mmww_wp_prepare_attachment_for_js ($response, $attachment, $meta) {
 	return $response;
 }
 
-
-//add_filter('media_meta', 'mmww_media_meta', 20, 2);
-
-/**
- * fetch media metadata 
- * @param mixed $inmeta metadata array or maybe empty string
- * @param object $post
- * @return array metadata
- */
-function mmww_media_meta ($inmeta, $post) {
-
-	/* do we have metadata already stored for this one? */
-	$jsonmeta = get_post_meta($post->ID,MMWW_POSTMETA_KEY,true);
-	if (! empty ($jsonmeta)) {
-		$meta = json_decode($jsonmeta, true);
-		$metadata_refreshed = false;
-	}
-	else {
-		/* get the metadata from the media file. */
-		$meta = array();
-		if ($file) {
-			$meta = wp_read_image_metadata( $file );
-		}
-		/* pack it up to store in the post meta table */
-		$jsonmeta = json_encode ($meta);
-		add_post_meta($post->ID,MMWW_POSTMETA_KEY,$jsonmeta);
-		$metadata_refreshed = true;
-	}
-	
-	
-	if ( is_array  ($inmeta) ) {
-		return array_merge($inmeta, $meta);
-	}
-	return $meta;
-}
 
 /**
  * get an html table made of an item's metadata
@@ -359,16 +326,24 @@ function mmww_attachment_fields_to_edit($fields,$post) {
 	$metadata_refreshed = false;
 	$mime = get_post_mime_type($post->ID);
 	$file = mmww_get_attachment_path( $post->ID );
-	$meta = mmww_media_meta ( '', $post );
-	
+
+	/* get the metadata from the media file. */
+	$meta = array();
+	if ($file) {
+		$meta = wp_read_image_metadata( $file );
+	}	
+		
 	/* this field is only needed when embedding an attachment */
+	/* this $fields['url'] array element is not present in WP 3.5 and beyond */
 	if (isset( $fields['url'] ) && isset( $fields['url']['html'] ) ) {
 		if ($mime == 'audio/mpeg') {
-			/* audio file; insert a player button matching the Jetpack [audio] shortcode syntax */
+			/* 3.4.x and before: audio file; insert a player button matching the Jetpack [audio] shortcode syntax */
 			$url = wp_get_attachment_url($post->ID);
 			$files = esc_attr($url);
 			/* the [audio[ titles and artists lists are comma separated, so entitize embedded commas */
+			//TODO use the title field unmodified
 			$titles = mmww_nocommas(mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 'album')));
+			//TODO drive this from a setting template
 			$artists = mmww_nocommas(mmww_getmetastring ('; ',$meta, array('creditlead', 'credit', 'creditconductor')));
 			$playertag = "[audio $files|titles=$titles|artists=$artists]";
 			/* translators: name of a UI button element in the insert media popup */
@@ -381,19 +356,18 @@ function mmww_attachment_fields_to_edit($fields,$post) {
 		}
 	}
 	/* do we have refreshed metadata? if so, update the fields */
-	if ($metadata_refreshed) {
 	
-		$string = mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 
-				'album','creditlead', 'credit', 'creditconductor','created_time', 'copyright'));
-		$fields['post_excerpt']['value'] = $string;
-		
-		$string = '';
-		if (mmww_getfiletype( $mime ) == 'image') {
-			$fields['image_alt']['value'] = mmww_getmetastring ('; ',$meta, array('title','credit'));
-		}		
+	$string = mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 
+			'album','creditlead', 'credit', 'creditconductor','created_time', 'copyright'));
+	$fields['post_excerpt']['value'] = $string;
+	
+	$string = '';
+	if (mmww_getfiletype( $mime ) == 'image') {
+		$fields['image_alt']['value'] = mmww_getmetastring ('; ',$meta, array('title','credit'));
+	}		
 
-		$fields['post_content']['value'] = mmww_get_metadata_table ($meta);
-	}
+	$fields['post_content']['value'] = mmww_get_metadata_table ($meta);
+
 	return $fields;
 }
 
@@ -446,7 +420,6 @@ function mmww_audio_send_to_editor($html, $attachment_id, $attachment) {
 	}
 	return $html;
 }
-
 
 
 ?>
