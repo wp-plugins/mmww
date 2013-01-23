@@ -30,9 +30,9 @@ function mmww_get_iptc_metadata ($file) {
 					if ( strlen( $caption ) < 80 )
 						$meta['title'] = $caption;
 					else
-						$meta['caption'] = $caption;
+						$meta['description'] = $caption;
 				} elseif ( $caption != $meta['title'] ) {
-					$meta['caption'] = $caption;
+					$meta['description'] = $caption;
 				}
 			}
 

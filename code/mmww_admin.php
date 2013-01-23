@@ -20,8 +20,22 @@ function mmww_register_setting(){
  * emit the options heading for the audio section
  */
 function mmww_admin_audio_text() {
-	echo '<p>' . __('Options for audio files', 'mmww') . '</p>';
+	echo '<p>' . __('These settings control the insertion of ID3 and other metadata from uploaded MP3 audio files into WordPress attachment data.', 'mmww') . '</p>';
 }
+
+/**
+ * emit the options heading for the image section
+ */
+function mmww_admin_image_text() {
+	echo '<p>' . __('These settings control the insertion of EXIF and other metadata from uploaded image files (JPG, PNG, TIFF) into WordPress attachment data.', 'mmww') . '</p>';
+}
+
+/**
+ * emit the options heading for the PDF section
+ */
+function mmww_admin_application_text() {
+	echo '<p>' . __('These settings control the insertion of PDF file properties into WordPress attachment data.', 'mmww') . '</p>';
+	}
 
 /**
  * emit the shortcode question
@@ -69,7 +83,7 @@ function mmww_admin_text($item) {
  * @return validated array
  */
 function mmww_admin_validate_options( $input ) {
-	$codes = explode('|','audio_shortcode|audio_title|audio_caption');
+	$codes = explode('|','audio_shortcode|audio_title|audio_caption|image_title|image_caption|image_displaycaption|image_alt|application_title|application_caption');
 	$valid = array();
 	foreach ($codes as $code) {
 		$valid[$code] = $input[$code];
@@ -82,10 +96,8 @@ function mmww_admin_page() {
 	?>
 	<div class="wrap">';
 	<div id="icon-plugins" class="icon32"></div><div id="icon-upload" class="icon32"></div>
-	<?php
-	printf ('<div class="wrap"><h2>' . __( 'Media Metadata Workflow Wizard (Version %1s) Options', 'mmww' ) . '</h2></div>', MMWW_VERSION_NUM);
-	_e( 'Test page' );
-	
+	<?php	
+	printf ('<div class="wrap"><h2>' . __( 'Media Metadata Workflow Wizard (Version %1s) Settings', 'mmww' ) . '</h2></div>', MMWW_VERSION_NUM);
 	
 	add_settings_section(
 			'mmww_admin_audio',
@@ -111,12 +123,78 @@ function mmww_admin_page() {
 	);
 	add_settings_field(
 			'mmww_admin_audio_caption',
-			__( 'Audio caption template', 'mmww' ),
+			__( 'Audio description template', 'mmww' ),
 			'mmww_admin_text',
 			'mmww',
 			'mmww_admin_audio',
 			'audio_caption'
 	);
+	
+	
+	add_settings_section(
+			'mmww_admin_image',
+			__( 'Image Settings', 'mmww' ),
+			'mmww_admin_image_text',
+			'mmww' );
+		
+	add_settings_field(
+			'mmww_admin_image_title',
+			__( 'Image title template', 'mmww' ),
+			'mmww_admin_text',
+			'mmww',
+			'mmww_admin_image',
+			'image_title'
+	);
+	add_settings_field(
+			'mmww_admin_image_alt',
+			__( 'Image alternate text template (accessibility)', 'mmww' ),
+			'mmww_admin_text',
+			'mmww',
+			'mmww_admin_image',
+			'image_alt'  /*wp_postmeta ... meta_key = '_wp_attachment_image_alt', value in meta_value */
+	);
+
+	add_settings_field(
+			'mmww_admin_image_displaycaption',
+			__( 'Image caption template', 'mmww' ),
+			'mmww_admin_text',
+			'mmww',
+			'mmww_admin_image',
+			'image_displaycaption'  /* wp_posts.post_excerpt */
+	);
+	add_settings_field(
+			'mmww_admin_image_caption',
+			__( 'Image description template', 'mmww' ),
+			'mmww_admin_text',
+			'mmww',
+			'mmww_admin_image',
+			'image_caption'   /* wp_posts.post_description */
+	);
+	
+	
+	add_settings_section(
+			'mmww_admin_application',
+			__( 'PDF Settings', 'mmww' ),
+			'mmww_admin_application_text',
+			'mmww' );
+	
+	add_settings_field(
+			'mmww_admin_application_title',
+			__( 'PDF title template', 'mmww' ),
+			'mmww_admin_text',
+			'mmww',
+			'mmww_admin_application',
+			'application_title'
+	);
+	add_settings_field(
+			'mmww_admin_application_caption',
+			__( 'PDF description template', 'mmww' ),
+			'mmww_admin_text',
+			'mmww',
+			'mmww_admin_application',
+			'application_caption'
+	);
+	
 	
 	
 	?>

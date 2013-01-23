@@ -73,7 +73,7 @@ function mmww_read_media_metadata ($meta, $file, $sourceImageType) {
 	if ( ! file_exists( $file ) ) {
 		return $meta;
 	}
-	
+	//TODO hang on to the file name to use as a title if nothing else works out.
 	$meta_accum = array();
 
 	$ft = wp_check_filetype( $file );
@@ -141,6 +141,11 @@ function mmww_apply_template_metadata ($meta, $file, $sourceImageType) {
 	}
 	
 	$cleanmeta = apply_filters( 'mmww_filter_metadata', $meta );
+	
+	/* $meta[caption] goes into wp_posts.post_content. This is shown as "description" in the UI.
+	 * $meta[title] goes into wp_posts.post_title. This is shown as "title"
+	 * we don't have a $meta item to go into wp_posts.post_excerpt. This is shown as "caption" in the UI.
+	 */
 	
 	$codes = explode('|','title|caption');
 	$newmeta = array();	

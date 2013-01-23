@@ -64,14 +64,17 @@ function mmww_activate() {
 	}
 	
 	/* handle options settings defaults */
+	/* translators: default settings for options, loaded on plugin activation */
 	$o = array (
 		'audio_shortcode' => 'disabled', /* Custom, Attachment, Media, None, disabled */
-		'audio_caption' => '{credit} {title} {album} {year} {copyright}',
+		'audio_caption' => '{credit} {title} {album} {year} {copyright} {description}',
 		'audio_title' => '{title}',
-		'image_caption' => '{title} {credit} {copyright}',
+		'image_caption' => '{title} {credit} {copyright} {description}',
+		'image_displaycaption' => '{title}',
+		'image_alt' => __('Photo: ', 'mmww') . '{title}',
 		'image_title' => '{title}',
-		'application_caption' => '{title} {credit} {caption} {copyright}',
-		'application_title' => '{title} PDF',
+		'application_caption' => '{title} {credit} {copyright} {description}',
+		'application_title' => '{title}',
 		
 	);
 	add_option('mmww_options', $o, false, 'no');

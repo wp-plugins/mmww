@@ -13,7 +13,7 @@ $mmww_xmp_metadata_list = array (
 	'tags' => '//dc:subject/rdf:Bag/rdf:li',
 	'copyright' => '//dc:rights/rdf:Alt/rdf:li',
 	'title' => '//dc:title/rdf:Alt/rdf:li',
-	'caption'=> '//dc:description/rdf:Alt/rdf:li',
+	'description'=> '//dc:description/rdf:Alt/rdf:li',
 	'format' => '//@dc:format'
 );
 
@@ -29,11 +29,10 @@ $mmww_xmp_audio_metadata_list = array (
 	'copyright' => '//dc:rights/rdf:Alt/rdf:li',
 	'title' => '//dc:title/rdf:Alt/rdf:li',
 	'album' => '//@xmpDM:album',
-	'caption' => '//@xmpDM:album',
 	'engineer' => '//@xmpDM:engineer',
 	'releasedate' => '//@xmpDM:releaseDate',
 	'year' => '//@xmpDM:year',	
-	'caption'=> '//dc:description/rdf:Alt/rdf:li',
+	'describptino'=> '//dc:description/rdf:Alt/rdf:li',
 	'format' => '//@dc:format'
 );
 

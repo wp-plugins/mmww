@@ -43,12 +43,12 @@ function mmww_get_exif_metadata ($file) {
 				// Assume the title is stored in ImageDescription
 				$meta['title'] = utf8_encode( substr ( trim( $exif['ImageDescription'] ),0,80 ));
 				if ( ! empty( $exif['COMPUTED']['UserComment'] ) && trim( $exif['COMPUTED']['UserComment'] ) != $meta['title'] ) {
-					$meta['caption'] = utf8_encode( trim( $exif['COMPUTED']['UserComment'] ) );
+					$meta['description'] = utf8_encode( trim( $exif['COMPUTED']['UserComment'] ) );
 				}
-				$meta['caption'] = utf8_encode( trim( $exif['ImageDescription'] ) );
+				$meta['description'] = utf8_encode( trim( $exif['ImageDescription'] ) );
 			}
 			elseif ( ! empty( $exif['Comments'] ) ) {
-				$meta['caption'] = utf8_encode( trim( $exif['Comments'] ) );
+				$meta['description'] = utf8_encode( trim( $exif['Comments'] ) );
 				$meta['title'] = '' ;
 			}
 		}
