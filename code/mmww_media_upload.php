@@ -61,51 +61,78 @@ function mmww_getfiletype ($f) {
 	return $filetype;	
 }
 
+add_filter ( 'wp_generate_attachment_metadata', 'mmww_generate_attachment_metadata', 10, 2 );
+
+/**
+ * refetch the attachment metadata for non-image file types (audio, PDF, etc)
+ * @param array $meta of metadata items including $meta['image_meta']
+ * @param int $id attachment id to process
+ * @return usable attachment metadata
+  */
+function mmww_generate_attachment_metadata ($metadata, $id) {
+	if (!array_key_exists('image_meta', $metadata)) {
+		/* no image_meta, we need to get it. */
+		$file = mmww_get_attachment_path ($id);
+		//$attachment = get_post( $attachment_id );
+		//$url = $attachment->guid;
+		
+		$image_meta = wp_read_image_metadata( $file );
+		if ( $image_meta ) {
+			$metadata['image_meta'] = $image_meta;
+		}
+		
+	}
+	return $metadata;
+}
+
+
 add_filter('wp_update_attachment_metadata', 'mmww_update_attachment_metadata',10,2);
 
 /**
  * Filter to handle extra stuff in attachment metadata update
- * @param array $data attachment data array
+ * @param array $data attachment data array. Can be an empty array
  * @param int $id attachment id 
  * @return data, modified as needed
  */
 function mmww_update_attachment_metadata ($data, $id) {
 
-	$meta = $data['image_meta'];
-	$updates = array();
-
-	/* handle the caption for photos, which goes into wp_posts.post_excerpt. */
-	if (!empty($meta['displaycaption'])) {
-		$updates['post_excerpt'] = $meta['displaycaption'];
-	}
+	if ( !empty ( $data ) && array_key_exists('image_meta', $data) ) {
+		$meta = $data['image_meta'];
+		$updates = array();
 	
-	/* update the attachment post_date and post_date_gmt if that's what the user wants and the metadata has it */
-	$options = get_option( 'mmww_options' );
-	$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
-	if ($choice == 'yes' && !empty($meta['created_timestamp'])) {
-		$previous = date_default_timezone_get();
-		@date_default_timezone_set(get_option('timezone_string'));
-		$ltime =  date( 'Y-m-d H:i:s', $meta['created_timestamp'] );
-		$updates['post_date'] = $ltime;
-		$ztime = gmdate( 'Y-m-d H:i:s', $meta['created_timestamp'] );
-		$updates['post_date_gmt'] = $ztime;
-		@date_default_timezone_set($previous);
-	}
+		/* handle the caption for photos, which goes into wp_posts.post_excerpt. */
+		if (!empty($meta['displaycaption'])) {
+			$updates['post_excerpt'] = $meta['displaycaption'];
+		}
+		
+		/* update the attachment post_date and post_date_gmt if that's what the user wants and the metadata has it */
+		$options = get_option( 'mmww_options' );
+		$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
+		if ($choice == 'yes' && !empty($meta['created_timestamp'])) {
+			$previous = date_default_timezone_get();
+			@date_default_timezone_set(get_option('timezone_string'));
+			$ltime =  date( 'Y-m-d H:i:s', $meta['created_timestamp'] );
+			$updates['post_date'] = $ltime;
+			$ztime = gmdate( 'Y-m-d H:i:s', $meta['created_timestamp'] );
+			$updates['post_date_gmt'] = $ztime;
+			@date_default_timezone_set($previous);
+		}
+		
+		/* make any updates needed to the posts table. */
+		if (!empty ($updates)) {
+			global $wpdb;
+			$where = array( 'ID' => $id );	
+			$wpdb->update( $wpdb->posts, $updates, $where );
+		}
 	
-	/* make any updates needed to the posts table. */
-	if (!empty ($updates)) {
-		global $wpdb;
-		$where = array( 'ID' => $id );	
-		$wpdb->update( $wpdb->posts, $updates, $where );
+		/* handle the alt text (screenreader etc) which goes into a postmeta row */
+		if (!empty($meta['alt'])) {
+			update_post_meta ($id, '_wp_attachment_image_alt', $meta['alt']);
+		} 
+		
+		/* stash tne metadata itself so we don't have to reread it from the file for site visitors */	
+		update_post_meta ($id, MMWW_POSTMETA_KEY, json_encode($meta));
 	}
-
-	/* handle the alt text (screenreader etc) which goes into a postmeta row */
-	if (!empty($meta['alt'])) {
-		update_post_meta ($id, '_wp_attachment_image_alt', $meta['alt']);
-	} 
-	
-	/* stash tne metadata itself so we don't have to reread it from the file for site visitors */	
-	update_post_meta ($id, MMWW_POSTMETA_KEY, json_encode($meta));
 	
 	return $data;
 }
@@ -339,31 +366,6 @@ function mmww_make_string( $meta, $item ) {
 	return $r;
 }
 
-//TODO I don't think we  need this one. add_filter ('wp_prepare_attachment_for_js', 'mmww_wp_prepare_attachment_for_js', 20,3);
-
-/**
- * update attachment details for display in media manager 
- * @since 3.5
- * @param array $response attachment details.
- * @param mixed $attachment Attachment ID or object.
- * @param mixed $meta array of metadata. meta['image_meta'] contains this plugin's stuff 
- * @return array Array of attachment details.
- */
-function mmww_wp_prepare_attachment_for_js ($response, $attachment, $meta) {
-	/* the $meta parameter isn't always present */
-	if ( !empty ( $meta ) && !empty ( $meta['image_meta'] )  ) {
-		$im = $meta['image_meta'];
-		if ('audio' == $response['type']) {
-			$response['caption'] = mmww_make_string($im,'audio_caption');
-			$response['description'] = mmww_make_string($im,'audio_description');
-			$response['title'] = mmww_make_string($im,'audio_title');
-		}
-	}
-	
-	return $response;
-}
-
-
 /**
  * get an html table made of an item's metadata
  * @param array $meta of metadata strings
@@ -380,7 +382,6 @@ function mmww_get_metadata_table ($meta) {
 
 	return $string;
 }
-
 
 if ( version_compare( get_bloginfo( 'version' ), '3.5', '<' ) ) {
 	add_filter('attachment_fields_to_edit', 'mmww_attachment_fields_to_edit',20,2);
@@ -441,7 +442,6 @@ function mmww_attachment_fields_to_edit($fields,$post) {
 	return $fields;
 }
 
-
 add_filter('media_send_to_editor', 'mmww_audio_send_to_editor', 11, 3);
 
 /**
@@ -490,6 +490,4 @@ function mmww_audio_send_to_editor($html, $attachment_id, $attachment) {
 	}
 	return $html;
 }
-
-
 ?>

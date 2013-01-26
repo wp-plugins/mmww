@@ -37,8 +37,9 @@ class PNG_Reader
 			$chunk = @unpack('Nsize/a4type', $chunkHeader);
 
 			// Store position into internal array
-			if ($this->_chunks[$chunk['type']] === null)
+			if (!array_key_exists($chunk['type'], $this->_chunks)) {
 				$this->_chunks[$chunk['type']] = array ();
+			}
 			$this->_chunks[$chunk['type']][] = array (
 				'offset' => ftell($this->_fp),
 				'size' => $chunk['size']

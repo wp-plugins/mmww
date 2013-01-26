@@ -1,7 +1,7 @@
 === Plugin Name ===
 Contributors: olliejones
 Donate link: http://joebackward.wordpress.com/2012/11/25/mmww-media-metadata-workfilow-wizard-plugin-for-wordpress-3-4/
-Tags: media, audio, video, images, metadata, exif, id3, xmp, iptc, workflow
+Tags: media, audio, video, images, metadata, exif, id3, xmp, png, iptc, workflow
 Requires at least: 3.0.1
 Tested up to: 3.5
 Stable tag: 0.9.1
@@ -12,29 +12,23 @@ This plugin integrates your media metadata workflow with WordPress's Media Libra
 
 == To Do ==
 
-Create the configuration page allowing user to choose which metadata fields are
-used to populate the attachment title, description, and caption.
-
-Add a "reread metadata" control.
-
 Add support for aac and video file metadata
 
 Ask for and receive lots of sample files from users, and use them to test.
 
 Switch to using object syntax.
 
-Perhaps come up with a less sleazy way of reading xmp metadata. Right now the plugin reads the first 128K of the media file and greps for the xmp XML stanza.
-
 Come up with a better way to handle commas in metadata when generating audio tags.
 
 == Description ==
 
-If you create lots of images, audio clips, or video clips 
+If you create lots of images, graphics, audio clips, or video clips 
 you probably go to some trouble to put metadata (titles, 
 copyrights, track names, dates, and all that) into them.
 
 JPEG image files have EXIF metadata. MP3 audio clips have ID3 metadata.
-Adobe is pushing an interoperable standard called XMP to hold metadata as well.
+PNG files have their own kind of metadata. Adobe is pushing an interoperable 
+standard called XMP to hold metadata as well.
 Video files also have metadata.  
 
 If you use a production tool like Adobe Bridge or Audacity, you probably
@@ -87,6 +81,9 @@ Audio Player button working
 
 
 == Upgrade Notice ==
+
+= 1.0 =
+Add support for WordPress 3.5 and above. Add PNG support.
 
 = 0.9 =
 First publicly visible version
