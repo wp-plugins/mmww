@@ -75,6 +75,7 @@ function mmww_activate() {
 		'image_title' => '{title}',
 		'application_caption' => '{title} {credit} {copyright} {description}',
 		'application_title' => '{title}',
+		'use_creation_date' => 'no',
 		
 	);
 	add_option('mmww_options', $o, false, 'no');

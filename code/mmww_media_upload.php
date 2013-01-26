@@ -1,5 +1,7 @@
 <?php
 
+require_once 'png.php';
+
 //add_action( 'media_buttons', 'mmww_media_buttons' );
 
 /* metadata display filters; internal to mmww */
@@ -20,13 +22,17 @@ function mmww_filter_all_metadata ($meta) {
 	
 	/* get a creation time string from the timestamp */
 	if ( ! empty ($meta['created_timestamp']) ) {
+		/* do the timezone stuff right; png creation time is in local time */
+		$previous = date_default_timezone_get();
+		@date_default_timezone_set(get_option('timezone_string'));
 		$meta['created_time'] = 
-				date_i18n( get_option('date_format'), $meta['created_timestamp'] ) . ' ' .
-		     	date_i18n( get_option('time_format'), $meta['created_timestamp'] );
+			date_i18n( get_option('date_format'), $meta['created_timestamp'] ) . ' ' .
+	     	date_i18n( get_option('time_format'), $meta['created_timestamp'] );
+		@date_default_timezone_set($previous);	
 	}
 
 	/* eliminate redundant items from the metadata */
-	$tozap = array('created_timestamp','aperture','shutter_speed', 'warning');
+	$tozap = array('aperture','shutter_speed', 'warning');
 	foreach ($tozap as $zap) {
 		unset ($meta[$zap]);
 	}
@@ -55,14 +61,63 @@ function mmww_getfiletype ($f) {
 	return $filetype;	
 }
 
+add_filter('wp_update_attachment_metadata', 'mmww_update_attachment_metadata',10,2);
+
+/**
+ * Filter to handle extra stuff in attachment metadata update
+ * @param array $data attachment data array
+ * @param int $id attachment id 
+ * @return data, modified as needed
+ */
+function mmww_update_attachment_metadata ($data, $id) {
+
+	$meta = $data['image_meta'];
+	$updates = array();
+
+	/* handle the caption for photos, which goes into wp_posts.post_excerpt. */
+	if (!empty($meta['displaycaption'])) {
+		$updates['post_excerpt'] = $meta['displaycaption'];
+	}
+	
+	/* update the attachment post_date and post_date_gmt if that's what the user wants and the metadata has it */
+	$options = get_option( 'mmww_options' );
+	$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
+	if ($choice == 'yes' && !empty($meta['created_timestamp'])) {
+		$previous = date_default_timezone_get();
+		@date_default_timezone_set(get_option('timezone_string'));
+		$ltime =  date( 'Y-m-d H:i:s', $meta['created_timestamp'] );
+		$updates['post_date'] = $ltime;
+		$ztime = gmdate( 'Y-m-d H:i:s', $meta['created_timestamp'] );
+		$updates['post_date_gmt'] = $ztime;
+		@date_default_timezone_set($previous);
+	}
+	
+	/* make any updates needed to the posts table. */
+	if (!empty ($updates)) {
+		global $wpdb;
+		$where = array( 'ID' => $id );	
+		$wpdb->update( $wpdb->posts, $updates, $where );
+	}
+
+	/* handle the alt text (screenreader etc) which goes into a postmeta row */
+	if (!empty($meta['alt'])) {
+		update_post_meta ($id, '_wp_attachment_image_alt', $meta['alt']);
+	} 
+	
+	/* stash tne metadata itself so we don't have to reread it from the file for site visitors */	
+	update_post_meta ($id, MMWW_POSTMETA_KEY, json_encode($meta));
+	
+	return $data;
+}
+
 add_filter('wp_read_image_metadata', 'mmww_read_media_metadata',11,3);
 add_filter('wp_read_image_metadata', 'mmww_apply_template_metadata',90,3);
 
 /**
  * filter to extend the stuff in wp_admin/includes/image.php
  *        and store the metadata in the right place.
- *        This function handles xmp, iptc, exif, and id3v2
- *        and so copes pretty well with pdf, mp3, etc.
+ *        This function handles xmp, iptc, exif, png, and id3v2
+ *        and so copes pretty well with pdf, mp3, jpg, png etc.
  * @param array $meta  associative array containing pre-loaded metadata
  * @param string $file file name
  * @param string $sourceImageType encoding of a few MIME types
@@ -95,6 +150,9 @@ function mmww_read_media_metadata ($meta, $file, $sourceImageType) {
 		case 'image':
 			require_once 'exif.php';
 			$newmeta = mmww_get_exif_metadata ($file);
+			$meta_accum = array_merge($meta_accum, $newmeta);
+			require_once 'png.php';
+			$newmeta = mmww_get_png_metadata ($file);
 			$meta_accum = array_merge($meta_accum, $newmeta);
 			require_once 'iptc.php';
 			$newmeta = mmww_get_iptc_metadata ($file);
@@ -147,14 +205,17 @@ function mmww_apply_template_metadata ($meta, $file, $sourceImageType) {
 	 * we don't have a $meta item to go into wp_posts.post_excerpt. This is shown as "caption" in the UI.
 	 */
 	
-	$codes = explode('|','title|caption');
+	$codes = array ('title', 'caption', 'alt', 'displaycaption');
 	$newmeta = array();	
 	foreach ($codes as $code) {
 		$codetype = $meta['mmww_type'].'_'.$code;
-		$newmeta[$code] = mmww_make_string ($cleanmeta,$codetype);
+		$gen = mmww_make_string ($cleanmeta,$codetype);
+		if(!empty($gen)) {
+			$newmeta[$code] = $gen;
+		}
 	}
 	
-	$meta = array_merge($meta, $newmeta);
+	$meta = array_merge($cleanmeta, $newmeta);
 	return $meta;
 }
 
@@ -237,6 +298,9 @@ function mmww_get_attachment_path( $post_id = 0 ) {
 function mmww_make_string( $meta, $item ) {
 	$r = ''; /* result accumulator */
 	$options = get_option( 'mmww_options' );
+	if (!array_key_exists($item, $options)) {
+		return NULL;
+	}
 	$t = (empty( $options[$item] )) ? '' : $options[$item]; /* the template */
 	/* this is a parse loop that handles text {token} text {token} style templates. */
 	while ( ! empty ($t) > 0) {

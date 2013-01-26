@@ -74,9 +74,13 @@ function mmww_get_exif_metadata ($file) {
 		if ( ! empty($exif['Model'] ) )
 			$meta['camera'] = utf8_encode( trim( $exif['Model'] ) );
 
-		if ( ! empty($exif['DateTimeDigitized'] ) )
+		if ( ! empty($exif['DateTimeDigitized'] ) ) {
+			/* do the timezone stuff right; camera metadata is in local time */
+			$previous = date_default_timezone_get();
+			@date_default_timezone_set(get_option('timezone_string'));	
 			$meta['created_timestamp'] = wp_exif_date2ts($exif['DateTimeDigitized'] );
-
+			@date_default_timezone_set($previous);
+		}
 		if ( ! empty($exif['FocalLength'] ) )
 			$meta['focal_length'] = wp_exif_frac2dec( $exif['FocalLength'] );
 

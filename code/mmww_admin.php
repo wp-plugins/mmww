@@ -17,6 +17,13 @@ function mmww_register_setting(){
 }
 
 /**
+ * emit the options heading for the overview section
+ */
+function mmww_admin_general_text() {
+	//echo '<p>' . __('These settings control the media workflow in general.', 'mmww') . '</p>';
+}
+
+/**
  * emit the options heading for the audio section
  */
 function mmww_admin_audio_text() {
@@ -36,6 +43,29 @@ function mmww_admin_image_text() {
 function mmww_admin_application_text() {
 	echo '<p>' . __('These settings control the insertion of PDF file properties into WordPress attachment data.', 'mmww') . '</p>';
 	}
+
+/**
+ * emit the creation date question
+ */
+function mmww_admin_use_creation_date_text() {
+	// get option 'use_creation_date' value from the database
+	$options = get_option( 'mmww_options' );
+	$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
+
+	$choices = array (
+		'no' => __( 'System date / time', 'mmww'),
+		'yes' => __( 'Media file creation date / time', 'mmww'),
+	);
+	$pattern = '<input type="radio" id="mmww_admin_use_creation_date" name="mmww_options[use_creation_date]" value="%1$s" %2$s> %3$s';
+
+	$f = array();
+	foreach ($choices as $i => $k) {
+		$checked =($choice == $i) ? 'checked' : '';
+		$f[] = sprintf($pattern,$i,$checked,$k );
+	}
+	echo implode('&nbsp;&nbsp;&nbsp;&nbsp',$f);
+	unset ($f);
+}
 
 /**
  * emit the shortcode question
@@ -83,7 +113,7 @@ function mmww_admin_text($item) {
  * @return validated array
  */
 function mmww_admin_validate_options( $input ) {
-	$codes = explode('|','audio_shortcode|audio_title|audio_caption|image_title|image_caption|image_displaycaption|image_alt|application_title|application_caption');
+	$codes = explode('|','audio_shortcode|audio_title|audio_caption|image_title|image_caption|image_displaycaption|image_alt|application_title|application_caption|use_creation_date');
 	$valid = array();
 	foreach ($codes as $code) {
 		$valid[$code] = $input[$code];
@@ -99,6 +129,20 @@ function mmww_admin_page() {
 	<?php	
 	printf ('<div class="wrap"><h2>' . __( 'Media Metadata Workflow Wizard (Version %1s) Settings', 'mmww' ) . '</h2></div>', MMWW_VERSION_NUM);
 	
+	add_settings_section(
+			'mmww_admin_general',
+			__( 'Settings for all media types', 'mmww' ),
+			'mmww_admin_general_text', 
+		    'mmww' );
+	
+	add_settings_field( 
+			'mmww_admin_use_creation_date',
+			__( 'Attachment upload date set from', 'mmww' ),
+			'mmww_admin_use_creation_date_text',
+			'mmww',
+			'mmww_admin_general'
+	);
+
 	add_settings_section(
 			'mmww_admin_audio',
 			__( 'Audio Settings', 'mmww' ),

@@ -32,7 +32,7 @@ $mmww_xmp_audio_metadata_list = array (
 	'engineer' => '//@xmpDM:engineer',
 	'releasedate' => '//@xmpDM:releaseDate',
 	'year' => '//@xmpDM:year',	
-	'describptino'=> '//dc:description/rdf:Alt/rdf:li',
+	'description'=> '//dc:description/rdf:Alt/rdf:li',
 	'format' => '//@dc:format'
 );
 
