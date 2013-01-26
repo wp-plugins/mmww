@@ -1,9 +1,5 @@
 <?php
 
-require_once 'png.php';
-
-//add_action( 'media_buttons', 'mmww_media_buttons' );
-
 /* metadata display filters; internal to mmww */
 
 add_filter('mmww_filter_metadata', 'mmww_filter_all_metadata' ,10, 1);
@@ -14,12 +10,7 @@ add_filter('mmww_filter_metadata', 'mmww_filter_all_metadata' ,10, 1);
  * @return array of metadata
  */
 function mmww_filter_all_metadata ($meta) {
-	
-	/* fix up the copyright statement to present in a compliant way */
-	if ( ! empty ($meta['copyright']) ) {
-		$meta['copyright'] = __( "Copyright &#169; ", 'mmww' ) . $meta['copyright'];
-	}
-	
+		
 	/* get a creation time string from the timestamp */
 	if ( ! empty ($meta['created_timestamp']) ) {
 		/* do the timezone stuff right; png creation time is in local time */
@@ -37,15 +28,15 @@ function mmww_filter_all_metadata ($meta) {
 		unset ($meta[$zap]);
 	}
 
-	/* eliminate zero or empty items */
-	foreach ($meta as $key => $val) {
-		if ( is_string($val) && strlen($val) == 0 ) {
-			unset ($meta[$key]);
-		}
-		if ( is_numeric($val) && $val == 0 ) {
-			unset ($meta[$key]);
-		}
-	}
+	///* eliminate zero or empty items */
+	//foreach ($meta as $key => $val) {
+	//	if ( is_string($val) && strlen($val) == 0 ) {
+	//		unset ($meta[$key]);
+	//	}
+	//	if ( is_numeric($val) && $val == 0 ) {
+	//		unset ($meta[$key]);
+	//	}
+	//}
 	return $meta;
 }
 
@@ -61,6 +52,8 @@ function mmww_getfiletype ($f) {
 	return $filetype;	
 }
 
+$mmww_meta_cache_by_filename = array();
+
 add_filter ( 'wp_generate_attachment_metadata', 'mmww_generate_attachment_metadata', 10, 2 );
 
 /**
@@ -70,21 +63,28 @@ add_filter ( 'wp_generate_attachment_metadata', 'mmww_generate_attachment_metada
  * @return usable attachment metadata
   */
 function mmww_generate_attachment_metadata ($metadata, $id) {
+	global $mmww_meta_cache_by_filename;
+	$image_meta = array();
+	/*
+	 * Note: sometimes WP asks us to reread the metadata.
+	 * This $mmww_meta_cache_by_filename gets us out of doing that,
+	 * to save file-slurping time.
+	 */
 	if (!array_key_exists('image_meta', $metadata)) {
 		/* no image_meta, we need to get it. */
 		$file = mmww_get_attachment_path ($id);
-		//$attachment = get_post( $attachment_id );
-		//$url = $attachment->guid;
-		
-		$image_meta = wp_read_image_metadata( $file );
-		if ( $image_meta ) {
-			$metadata['image_meta'] = $image_meta;
+		if (array_key_exists($file, $mmww_meta_cache_by_filename)) {
+			$image_meta = $mmww_meta_cache_by_filename[$file];
+		}  else {
+			$image_meta = wp_read_image_metadata( $file );
 		}
 		
+		if ( $image_meta ) {
+			$metadata['image_meta'] = $image_meta;
+		}		
 	}
 	return $metadata;
 }
-
 
 add_filter('wp_update_attachment_metadata', 'mmww_update_attachment_metadata',10,2);
 
@@ -123,6 +123,7 @@ function mmww_update_attachment_metadata ($data, $id) {
 			global $wpdb;
 			$where = array( 'ID' => $id );	
 			$wpdb->update( $wpdb->posts, $updates, $where );
+			clean_post_cache ($id);
 		}
 	
 		/* handle the alt text (screenreader etc) which goes into a postmeta row */
@@ -154,6 +155,12 @@ function mmww_read_media_metadata ($meta, $file, $sourceImageType) {
 
 	if ( ! file_exists( $file ) ) {
 		return $meta;
+	}
+	
+	/* if the metadata is cached, return it right away */
+	global $mmww_meta_cache_by_filename;
+	if (array_key_exists($file, $mmww_meta_cache_by_filename)) {
+		return $mmww_meta_cache_by_filename[$file];
 	}
 	//TODO hang on to the file name to use as a title if nothing else works out.
 	$meta_accum = array();
@@ -224,6 +231,12 @@ function mmww_apply_template_metadata ($meta, $file, $sourceImageType) {
 		/* if there's no mmww metadata detected, don't do anything more */
 		return $meta;
 	}
+
+	/* if the metadata is cached, return it right away */
+	global $mmww_meta_cache_by_filename;
+	if (array_key_exists($file, $mmww_meta_cache_by_filename)) {
+		return $mmww_meta_cache_by_filename[$file];
+	}
 	
 	$cleanmeta = apply_filters( 'mmww_filter_metadata', $meta );
 	
@@ -243,6 +256,8 @@ function mmww_apply_template_metadata ($meta, $file, $sourceImageType) {
 	}
 	
 	$meta = array_merge($cleanmeta, $newmeta);
+	/* cache the resulting metadata */
+	$mmww_meta_cache_by_filename[$file] = $meta;
 	return $meta;
 }
 
