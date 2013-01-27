@@ -4,13 +4,13 @@
 		Plugin URI: http://joebackward.wordpress.com/2012/11/25/mmww-media-metadata-workfilow-wizard-plugin-for-wordpress-3-4/
 		Description: Use the Media Metadata Workflow Wizard to integrate your media metadata workflow with WordPress's Media Library. If you create lots of images, audio clips, or video clips you probably work hard to put metadata (titles, authors, copyrights, track names, dates, and all that) into them. Now you can have that metadata stored into the Media Library automatically when you upload your media files.
 		Author: Ollie Jones
-		Version: 0.9.1
+		Version: 1.0.0
 		Author URI: http://joebackward.wordpress.com/2012/11/25/mmww-media-metadata-workfilow-wizard-plugin-for-wordpress-3-4/
 		Text Domain: mmww
 		*/
 /** current version number  */
 if (!defined('MMWW_VERSION_NUM')) {
-	define('MMWW_VERSION_NUM', '0.9.1');
+	define('MMWW_VERSION_NUM', '1.0.0');
 }
 /* set up some handy globals */
 if (!defined('MMWW_THEME_DIR')) {
@@ -30,8 +30,8 @@ if (!defined('MMWW_POSTMETA_KEY')) {
 }
 
 //TODO make this go away
-ini_set('display_errors', 'On');
-error_reporting(E_ALL);
+//ini_set('display_errors', 'On');
+//error_reporting(E_ALL);
 
 register_activation_hook( __FILE__, 'mmww_activate' );
 
@@ -42,6 +42,11 @@ add_action( 'init', 'mmww_do_everything' );
 
 function mmww_do_everything () {
 
+	if ( current_user_can ( 'upload_files') || current_user_can ( 'manage_options')) {
+		if ( is_admin() ) {
+			load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
+		}
+	}
 	if ( is_admin() && current_user_can ( 'manage_options' )) {
 		require_once ( 'code/mmww_admin.php' );
 	}
@@ -66,12 +71,13 @@ function mmww_activate() {
 	/* handle options settings defaults */
 	/* translators: default settings for options, loaded on plugin activation */
 	$o = array (
-		'audio_shortcode' => 'disabled', /* Custom, Attachment, Media, None, disabled */
+		'audio_shortcode' => 'media', /* never, custom, attachment, media, none, always -- choose one */
 		'audio_caption' => '{credit} {title} {album} {year} {copyright} {description}',
 		'audio_title' => '{title}',
+		'audio_displaycaption' => '{grouptitle} {title} {album} {credit}',
 		'image_caption' => '{title} {credit} {copyright} {description}',
 		'image_displaycaption' => '{title}',
-		'image_alt' => __('Photo: ', 'mmww') . '{title}',
+		'image_alt' => '{title} {credit}',
 		'image_title' => '{title}',
 		'application_caption' => '{title} {credit} {copyright} {description}',
 		'application_title' => '{title}',

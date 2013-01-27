@@ -411,27 +411,16 @@ if ( version_compare( get_bloginfo( 'version' ), '3.5', '<' ) ) {
 function mmww_attachment_fields_to_edit($fields,$post) {
 	$metadata_refreshed = false;
 	$mime = get_post_mime_type($post->ID);
-	$file = mmww_get_attachment_path( $post->ID );
-
-	/* get the metadata from the media file. */
-	$meta = array();
-	if ($file) {
-		$meta = wp_read_image_metadata( $file );
-	}	
 		
-	/* this field is only needed when embedding an attachment */
+	/* this field is only needed when embedding an audio player for an attachment */
 	/* this $fields['url'] array element is not present in WP 3.5 and beyond */
 	if (isset( $fields['url'] ) && isset( $fields['url']['html'] ) ) {
 		if ($mime == 'audio/mpeg') {
 			/* 3.4.x and before: audio file; insert a player button matching the Jetpack [audio] shortcode syntax */
 			$url = wp_get_attachment_url($post->ID);
 			$files = esc_attr($url);
-			/* the [audio[ titles and artists lists are comma separated, so entitize embedded commas */
-			//TODO use the title field unmodified
-			$titles = mmww_nocommas(mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 'album')));
-			//TODO drive this from a setting template
-			$artists = mmww_nocommas(mmww_getmetastring ('; ',$meta, array('creditlead', 'credit', 'creditconductor')));
-			$playertag = "[audio $files|titles=$titles|artists=$artists]";
+			$titles = mmww_nocommas($post->post_excerpt);
+			$playertag = "[audio $files|titles=$titles]";
 			/* translators: name of a UI button element in the insert media popup */
 			$playerbuttonname = _x( 'Audio Player' , 'button_name' , 'mmww');
 			$postid = $post->ID;
@@ -441,18 +430,6 @@ function mmww_attachment_fields_to_edit($fields,$post) {
 				"$playerbuttonname</button>";
 		}
 	}
-	/* do we have refreshed metadata? if so, update the fields */
-	
-	$string = mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 
-			'album','creditlead', 'credit', 'creditconductor','created_time', 'copyright'));
-	$fields['post_excerpt']['value'] = $string;
-	
-	$string = '';
-	if (mmww_getfiletype( $mime ) == 'image') {
-		$fields['image_alt']['value'] = mmww_getmetastring ('; ',$meta, array('title','credit'));
-	}		
-
-	$fields['post_content']['value'] = mmww_get_metadata_table ($meta);
 
 	return $fields;
 }
@@ -476,16 +453,11 @@ function mmww_audio_send_to_editor($html, $attachment_id, $attachment) {
 	if ( $mime == 'audio/mpeg' ) {
 		$meta = array();
 		$result = '';
-		$jsonmeta = get_post_meta($post->ID,MMWW_POSTMETA_KEY,true);
-		if (! empty ($jsonmeta)) {
-			$meta = json_decode($jsonmeta, true);
-			$url = wp_get_attachment_url($post->ID);
-			$files = esc_attr($url);
-			/* the [audio[ titles and artists lists are comma separated in Jetpack shortcode, so scrub embedded commas */
-			$titles = mmww_nocommas(mmww_getmetastring ('; ', $meta, array('grouptitle', 'title', 'album')));
-			$artists = mmww_nocommas(mmww_getmetastring ('; ',$meta, array('creditlead', 'credit', 'creditconductor')));
-			$result = "[audio $files|titles=$titles|artists=$artists]";
-		}
+		$url = wp_get_attachment_url($post->ID);
+		$files = esc_attr($url);
+		/* the [audio file titles and artists lists are comma separated in Jetpack shortcode, so scrub embedded commas */
+		$titles = mmww_nocommas($post->post_excerpt);
+		$result = "[audio $files|titles=$titles]";
 		
 		if ( version_compare( get_bloginfo( 'version' ), '3.5', '<' ) ) {
 			/* pre-3.5 function ... fix up already-created [audio] shortcode */

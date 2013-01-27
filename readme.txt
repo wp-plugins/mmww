@@ -28,18 +28,22 @@ copyrights, track names, dates, and all that) into them.
 
 JPEG image files have EXIF metadata. MP3 audio clips have ID3 metadata.
 PNG files have their own kind of metadata. Adobe is pushing an interoperable 
-standard called XMP to hold metadata as well.
-Video files also have metadata.  
+standard called XMP to hold metadata as well.  Video files also have metadata.  
 
-If you use a production tool like Adobe Bridge or Audacity, you probably
-put this kind of metadata into your files.  And then
-you probably rekey it when you put the files into your WordPress
-site.  
+If you use a production tool like Acrobat, Adobe Bridge or Audacity, you probably
+put this kind of metadata into your files.  And then you probably rekey it when 
+you put the files into your WordPress site.  
 
 This plugin will get you out of doing that. Now you can have that 
 metadata transferred into the Media Library automatically when you 
 upload your media.
 
+You can choose to have the creation date in your media file used as the "Uploaded" date
+in WordPress.  So, for example, your photos can be ordered in the media library in
+order of the date they were taken.
+
+You can specify templates defining what metadata items should be used to create
+each WordPress attachment post's fields: title, caption, alt text, and descripion.
 
 == Installation ==
 
@@ -77,9 +81,14 @@ directory take precedence. For example, `/assets/screenshot-1.png` would win ove
 
 = 0.9.1 =
 
-Audio Player button working
+Audio Player button working for versions before Wordpress 3.5
 
+= 1.0.0 =
 
+ 1. Metadata extraction working for jpg, png, mp3, pdf files. (There's no metadata in gif files).
+ 1. Integration with the V3.5 media manager is complete.
+ 1. The Setting pages allows specification of templates for populating attachment-post fields.
+ 
 == Upgrade Notice ==
 
 = 1.0 =

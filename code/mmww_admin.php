@@ -34,7 +34,7 @@ function mmww_admin_audio_text() {
  * emit the options heading for the image section
  */
 function mmww_admin_image_text() {
-	echo '<p>' . __('These settings control the insertion of EXIF and other metadata from uploaded image files (JPG, PNG, TIFF) into WordPress attachment data.', 'mmww') . '</p>';
+	echo '<p>' . __('These settings control the insertion of EXIF and other metadata from uploaded image files (JPG, PNG) into WordPress attachment data.', 'mmww') . '</p>';
 }
 
 /**
@@ -53,7 +53,7 @@ function mmww_admin_use_creation_date_text() {
 	$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
 
 	$choices = array (
-		'no' => __( 'System date / time', 'mmww'),
+		'no' => __( 'Present date / time', 'mmww'),
 		'yes' => __( 'Media file creation date / time', 'mmww'),
 	);
 	$pattern = '<input type="radio" id="mmww_admin_use_creation_date" name="mmww_options[use_creation_date]" value="%1$s" %2$s> %3$s';
@@ -76,10 +76,10 @@ function mmww_admin_audio_shortcode_text() {
 	$choice = (empty( $options['audio_shortcode'] )) ? 'disabled' : $options['audio_shortcode'];
 
 	$choices = array (
-		'disabled' => __( '(Never)', 'mmww'),
+		'never' => __( '(Never)', 'mmww'),
 		'custom' => __( 'Custom URL', 'mmww'),
 		'attachment' => __( 'Attachment Page', 'mmww'),
-		'media' => __( 'Media File', 'mmww'),
+		'media' => __( 'Media File (recommended)', 'mmww'),
 		'none' => __( 'None', 'mmww'),
 		'always' => __( '(Always)', 'mmww'),
 	);
@@ -113,7 +113,11 @@ function mmww_admin_text($item) {
  * @return validated array
  */
 function mmww_admin_validate_options( $input ) {
-	$codes = explode('|','audio_shortcode|audio_title|audio_caption|image_title|image_caption|image_displaycaption|image_alt|application_title|application_caption|use_creation_date');
+	$codes = array (
+		'audio_shortcode', 'audio_title', 'audio_caption', 'audio_displaycaption', 
+		'image_title', 'image_caption', 'image_displaycaption', 'image_alt', 
+		'application_title', 'application_caption', 
+		'use_creation_date');
 	$valid = array();
 	foreach ($codes as $code) {
 		$valid[$code] = $input[$code];
@@ -122,9 +126,8 @@ function mmww_admin_validate_options( $input ) {
 }
 
 function mmww_admin_page() {
-	load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
 	?>
-	<div class="wrap">';
+	<div class="wrap">
 	<div id="icon-plugins" class="icon32"></div><div id="icon-upload" class="icon32"></div>
 	<?php	
 	printf ('<div class="wrap"><h2>' . __( 'Media Metadata Workflow Wizard (Version %1s) Settings', 'mmww' ) . '</h2></div>', MMWW_VERSION_NUM);
@@ -149,13 +152,16 @@ function mmww_admin_page() {
 			'mmww_admin_audio_text', 
 		    'mmww' );
 	
-	add_settings_field(
+	if ( version_compare( get_bloginfo( 'version' ), '3.5', '>=' ) ) {
+		/* this is for the new media insertion modal dialog only */
+		add_settings_field(
 			'mmww_admin_audio_shortcode',
 			__( 'Insert audio player shortcode when author chooses this <em>Link To</em> style', 'mmww' ),
 			'mmww_admin_audio_shortcode_text',
 			'mmww',
 			'mmww_admin_audio'
-	);
+		);
+	}
 
 	add_settings_field(
 			'mmww_admin_audio_title',
@@ -172,6 +178,14 @@ function mmww_admin_page() {
 			'mmww',
 			'mmww_admin_audio',
 			'audio_caption'
+	);
+	add_settings_field(
+			'mmww_admin_audio_displaycaption',
+			__( 'Audio player scrolling-text template', 'mmww' ),
+			'mmww_admin_text',
+			'mmww',
+			'mmww_admin_audio',
+			'audio_displaycaption'  /* wp_posts.post_excerpt */
 	);
 	
 	
