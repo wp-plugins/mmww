@@ -1,274 +1,281 @@
 <?php    
 
-add_action('admin_menu','mmww_admin_actions');
-add_action('admin_init','mmww_register_setting');
-
-function mmww_admin_actions() {
-	load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
-	add_options_page( __( 'Media Metadata Workflow Wizard', 'mmww' ),
-			__( 'Media Metadata', 'mmww' ), 
-			'upload_files', 
-			'mmww', 'mmww_admin_page' );
-	
-};
-
-function mmww_register_setting(){
-	register_setting( 'mmww', 'mmww_options', 'mmww_admin_validate_options' );
-}
-
-/**
- * emit the options heading for the overview section
+/** Class wrapper for MMWW admin page
  */
-function mmww_admin_general_text() {
-	//echo '<p>' . __('These settings control the media workflow in general.', 'mmww') . '</p>';
-}
 
-/**
- * emit the options heading for the audio section
- */
-function mmww_admin_audio_text() {
-	echo '<p>' . __('These settings control the insertion of ID3 and other metadata from uploaded MP3 audio files into WordPress attachment data.', 'mmww') . '</p>';
-}
+class MMWWAdmin {
 
-/**
- * emit the options heading for the image section
- */
-function mmww_admin_image_text() {
-	echo '<p>' . __('These settings control the insertion of EXIF and other metadata from uploaded image files (JPG, PNG) into WordPress attachment data.', 'mmww') . '</p>';
-}
+	function __construct() {
 
-/**
- * emit the options heading for the PDF section
- */
-function mmww_admin_application_text() {
-	echo '<p>' . __('These settings control the insertion of PDF file properties into WordPress attachment data.', 'mmww') . '</p>';
+		add_action( 'admin_menu', array( $this, 'admin_actions'));
+		add_action( 'admin_init', array( $this, 'register_setting'));
 	}
 
-/**
- * emit the creation date question
- */
-function mmww_admin_use_creation_date_text() {
-	// get option 'use_creation_date' value from the database
-	$options = get_option( 'mmww_options' );
-	$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
+	function admin_actions() {
+		load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
+		add_options_page( __( 'Media Metadata Workflow Wizard', 'mmww' ),
+				__( 'Media Metadata', 'mmww' ),
+				'upload_files',
+				'mmww', 
+				array( $this, 'admin_page') );
 
-	$choices = array (
-		'no' => __( 'Present date / time', 'mmww'),
-		'yes' => __( 'Media file creation date / time', 'mmww'),
-	);
-	$pattern = '<input type="radio" id="mmww_admin_use_creation_date" name="mmww_options[use_creation_date]" value="%1$s" %2$s> %3$s';
-
-	$f = array();
-	foreach ($choices as $i => $k) {
-		$checked =($choice == $i) ? 'checked' : '';
-		$f[] = sprintf($pattern,$i,$checked,$k );
 	}
-	echo implode('&nbsp;&nbsp;&nbsp;&nbsp',$f);
-	unset ($f);
-}
 
-/**
- * emit the shortcode question
- */
-function mmww_admin_audio_shortcode_text() {
-	// get option 'audio' value from the database
-	$options = get_option( 'mmww_options' );
-	$choice = (empty( $options['audio_shortcode'] )) ? 'disabled' : $options['audio_shortcode'];
-
-	$choices = array (
-		'never' => __( '(Never)', 'mmww'),
-		'custom' => __( 'Custom URL', 'mmww'),
-		'attachment' => __( 'Attachment Page', 'mmww'),
-		'media' => __( 'Media File (recommended)', 'mmww'),
-		'none' => __( 'None', 'mmww'),
-		'always' => __( '(Always)', 'mmww'),
-	);
-	$pattern = '<input type="radio" id="mmww_admin_audio_shortcode" name="mmww_options[audio_shortcode]" value="%1$s" %2$s> %3$s';
-
-	$f = array();
-	foreach ($choices as $i => $k) {
-		$checked =($choice == $i) ? 'checked' : '';
-		$f[] = sprintf($pattern,$i,$checked,$k );
+	function register_setting(){
+		register_setting( 'mmww', 'mmww_options', array( $this, 'validate_options') );
 	}
-	echo implode('&nbsp;&nbsp;&nbsp;&nbsp',$f);
-	unset ($f);
-}
 
-/**
- * emit a text question
- * @param string $item contains the options item name ... e.g. audio_caption
- */
-function mmww_admin_text($item) {
-	$options = get_option( 'mmww_options' );
-	$value = (empty( $options[$item] )) ? ' ' : $options[$item];
-	$pattern = '<input type="text" id="mmww_admin_%2$s" name="mmww_options[%2$s]" value="%1$s" size="80" />';
-	$pattern = sprintf ($pattern, $value, $item);
-	echo $pattern;
-	echo "\n";
-}
-
-/**
- * validate the options settings
- * @param array $input
- * @return validated array
- */
-function mmww_admin_validate_options( $input ) {
-	$codes = array (
-		'audio_shortcode', 'audio_title', 'audio_caption', 'audio_displaycaption', 
-		'image_title', 'image_caption', 'image_displaycaption', 'image_alt', 
-		'application_title', 'application_caption', 
-		'use_creation_date');
-	$valid = array();
-	foreach ($codes as $code) {
-		$valid[$code] = $input[$code];
+	/**
+	 * emit the options heading for the overview section
+	 */
+	function general_text() {
+		//echo '<p>' . __('These settings control the media workflow in general.', 'mmww') . '</p>';
 	}
-	return $valid;
-}
 
-function mmww_admin_page() {
-	?>
-	<div class="wrap">
-	<div id="icon-plugins" class="icon32"></div><div id="icon-upload" class="icon32"></div>
-	<?php	
-	printf ('<div class="wrap"><h2>' . __( 'Media Metadata Workflow Wizard (Version %1s) Settings', 'mmww' ) . '</h2></div>', MMWW_VERSION_NUM);
-	
-	add_settings_section(
-			'mmww_admin_general',
-			__( 'Settings for all media types', 'mmww' ),
-			'mmww_admin_general_text', 
-		    'mmww' );
-	
-	add_settings_field( 
-			'mmww_admin_use_creation_date',
-			__( 'Attachment upload date set from', 'mmww' ),
-			'mmww_admin_use_creation_date_text',
-			'mmww',
-			'mmww_admin_general'
-	);
+	/**
+	 * emit the options heading for the audio section
+	 */
+	function audio_text() {
+		echo '<p>' . __('These settings control the insertion of ID3 and other metadata from uploaded MP3 audio files into WordPress attachment data.', 'mmww') . '</p>';
+	}
 
-	add_settings_section(
-			'mmww_admin_audio',
-			__( 'Audio Settings', 'mmww' ),
-			'mmww_admin_audio_text', 
-		    'mmww' );
-	
-	if ( version_compare( get_bloginfo( 'version' ), '3.5', '>=' ) ) {
-		/* this is for the new media insertion modal dialog only */
-		add_settings_field(
-			'mmww_admin_audio_shortcode',
-			__( 'Insert audio player shortcode when author chooses this <em>Link To</em> style', 'mmww' ),
-			'mmww_admin_audio_shortcode_text',
-			'mmww',
-			'mmww_admin_audio'
+	/**
+	 * emit the options heading for the image section
+	 */
+	function image_text() {
+		echo '<p>' . __('These settings control the insertion of EXIF and other metadata from uploaded image files (JPG, PNG) into WordPress attachment data.', 'mmww') . '</p>';
+	}
+
+	/**
+	 * emit the options heading for the PDF section
+	 */
+	function application_text() {
+		echo '<p>' . __('These settings control the insertion of PDF file properties into WordPress attachment data.', 'mmww') . '</p>';
+	}
+
+	/**
+	 * emit the creation date question
+	 */
+	function use_creation_date_text() {
+		// get option 'use_creation_date' value from the database
+		$options = get_option( 'mmww_options' );
+		$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
+
+		$choices = array (
+			'yes' => __( 'Media file creation date / time when available', 'mmww'),
+			'no' => __( 'Present date / time', 'mmww'),
 		);
+		$pattern = '<input type="radio" id="mmww_admin_use_creation_date" name="mmww_options[use_creation_date]" value="%1$s" %2$s> %3$s';
+
+		$f = array();
+		foreach ($choices as $i => $k) {
+			$checked =($choice == $i) ? 'checked' : '';
+			$f[] = sprintf($pattern,$i,$checked,$k );
+		}
+		echo implode('&nbsp;&nbsp;&nbsp;&nbsp',$f);
+		unset ($f);
 	}
 
-	add_settings_field(
-			'mmww_admin_audio_title',
-			__( 'Audio title template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_audio',
-			'audio_title'
-	);
-	add_settings_field(
-			'mmww_admin_audio_caption',
-			__( 'Audio description template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_audio',
-			'audio_caption'
-	);
-	add_settings_field(
-			'mmww_admin_audio_displaycaption',
-			__( 'Audio player scrolling-text template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_audio',
-			'audio_displaycaption'  /* wp_posts.post_excerpt */
-	);
-	
-	
-	add_settings_section(
-			'mmww_admin_image',
-			__( 'Image Settings', 'mmww' ),
-			'mmww_admin_image_text',
-			'mmww' );
-		
-	add_settings_field(
-			'mmww_admin_image_title',
-			__( 'Image title template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_image',
-			'image_title'
-	);
-	add_settings_field(
-			'mmww_admin_image_alt',
-			__( 'Image alternate text template (accessibility)', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_image',
-			'image_alt'  /*wp_postmeta ... meta_key = '_wp_attachment_image_alt', value in meta_value */
-	);
+	/**
+	 * emit the shortcode question
+	 */
+	function audio_shortcode_text() {
+		// get option 'audio' value from the database
+		$options = get_option( 'mmww_options' );
+		$choice = (empty( $options['audio_shortcode'] )) ? 'disabled' : $options['audio_shortcode'];
 
-	add_settings_field(
-			'mmww_admin_image_displaycaption',
-			__( 'Image caption template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_image',
-			'image_displaycaption'  /* wp_posts.post_excerpt */
-	);
-	add_settings_field(
-			'mmww_admin_image_caption',
-			__( 'Image description template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_image',
-			'image_caption'   /* wp_posts.post_description */
-	);
-	
-	
-	add_settings_section(
-			'mmww_admin_application',
-			__( 'PDF Settings', 'mmww' ),
-			'mmww_admin_application_text',
-			'mmww' );
-	
-	add_settings_field(
-			'mmww_admin_application_title',
-			__( 'PDF title template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_application',
-			'application_title'
-	);
-	add_settings_field(
-			'mmww_admin_application_caption',
-			__( 'PDF description template', 'mmww' ),
-			'mmww_admin_text',
-			'mmww',
-			'mmww_admin_application',
-			'application_caption'
-	);
-	
-	
-	
-	?>
-    <form action="options.php" method="post">
+		$choices = array (
+			'media' => __( 'when the author selects Link To <em>Media File</em>', 'mmww'),
+			'never' => __( 'never', 'mmww'),
+		);
+		$pattern = '<input type="radio" id="mmww_admin_audio_shortcode" name="mmww_options[audio_shortcode]" value="%1$s" %2$s> %3$s';
 
-    <?php
-    settings_fields('mmww');
-    do_settings_sections('mmww');
-    ?>
+		$f = array();
+		foreach ($choices as $i => $k) {
+			$checked =($choice == $i) ? 'checked' : '';
+			$f[] = sprintf($pattern,$i,$checked,$k );
+		}
+		echo implode('&nbsp;&nbsp;&nbsp;&nbsp',$f);
+		unset ($f);
+	}
 
-    <p class="submit">
-    <input name="Submit" type="submit" id="submit" class="button button-primary" value="<?php _e('Save Changes','mmww');?>" />
-    </p>
-    </form></div>
+	/**
+	 * emit a text question
+	 * @param string $item contains the options item name ... e.g. audio_caption
+	 */
+	function admin_text($item) {
+		$options = get_option( 'mmww_options' );
+		$value = (empty( $options[$item] )) ? ' ' : $options[$item];
+		$pattern = '<input type="text" id="mmww_admin_%2$s" name="mmww_options[%2$s]" value="%1$s" size="80" />';
+		$pattern = sprintf ($pattern, $value, $item);
+		echo $pattern;
+		echo "\n";
+	}
 
-    <?php
+	/**
+	 * validate the options settings
+	 * @param array $input
+	 * @return validated array
+	 */
+	function validate_options( $input ) {
+		$codes = array (
+			'audio_shortcode', 'audio_title', 'audio_caption', 'audio_displaycaption',
+			'image_title', 'image_caption', 'image_displaycaption', 'image_alt',
+			'application_title', 'application_caption',
+			'use_creation_date');
+		$valid = array();
+		foreach ($codes as $code) {
+			$valid[$code] = $input[$code];
+		}
+		return $valid;
+	}
+
+	function admin_page() {
+		?>
+ 		<div class="wrap">
+		<div id="icon-plugins" class="icon32"></div>
+		<div id="icon-upload" class="icon32"></div>
+		<?php	
+		printf ('<div class="wrap"><h2>' . __( 'Media Metadata Workflow Wizard (Version %1s) Settings', 'mmww' ) . '</h2></div>', MMWW_VERSION_NUM);
+
+		add_settings_section(
+				'mmww_admin_general',
+				__( 'Settings for all media types', 'mmww' ),
+				array ( $this, 'general_text' ),
+				'mmww' );
+	
+		add_settings_field(
+				'mmww_admin_use_creation_date',
+				__( 'Attachment upload date set from', 'mmww' ),
+				array ($this, 'use_creation_date_text'),
+				'mmww',
+				'mmww_admin_general'
+		);
+	
+		add_settings_section(
+				'mmww_admin_audio',
+				__( 'Audio Settings', 'mmww' ),
+				array( $this, 'audio_text'),
+				'mmww' );
+	
+		add_settings_field(
+				'mmww_admin_audio_title',
+				__( 'Audio title template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_audio',
+				'audio_title'
+		);
+		add_settings_field(
+				'mmww_admin_audio_caption',
+				__( 'Audio description template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_audio',
+				'audio_caption'
+		);
+		add_settings_field(
+				'mmww_admin_audio_displaycaption',
+				__( 'Audio player scrolling-text template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_audio',
+				'audio_displaycaption'  /* wp_posts.post_excerpt */
+		);
+	
+		if ( version_compare( get_bloginfo( 'version' ), '3.5', '>=' ) ) {
+			/* this is for the new media insertion modal dialog only */
+			add_settings_field(
+					'mmww_admin_audio_shortcode',
+					__( 'Automatically insert audio player shortcodes into posts ... ', 'mmww' ),
+					array ( $this,'audio_shortcode_text'),
+					'mmww',
+					'mmww_admin_audio'
+			);
+		}
+	
+		add_settings_section(
+				'mmww_admin_image',
+				__( 'Image Settings', 'mmww' ),
+				array( $this,'image_text'),
+				'mmww' );
+	
+		add_settings_field(
+				'mmww_admin_image_title',
+				__( 'Image title template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_image',
+				'image_title'
+		);
+		add_settings_field(
+				'mmww_admin_image_alt',
+				__( 'Image alternate text template (accessibility)', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_image',
+				'image_alt'  /*wp_postmeta ... meta_key = '_wp_attachment_image_alt', value in meta_value */
+		);
+	
+		add_settings_field(
+				'mmww_admin_image_displaycaption',
+				__( 'Image caption template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_image',
+				'image_displaycaption'  /* wp_posts.post_excerpt */
+		);
+		add_settings_field(
+				'mmww_admin_image_caption',
+				__( 'Image description template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_image',
+				'image_caption'   /* wp_posts.post_description */
+		);
+	
+	
+		add_settings_section(
+				'mmww_admin_application',
+				__( 'PDF Settings', 'mmww' ),
+				array( $this, 'application_text'),
+				'mmww' );
+	
+		add_settings_field(
+				'mmww_admin_application_title',
+				__( 'PDF title template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_application',
+				'application_title'
+		);
+		add_settings_field(
+				'mmww_admin_application_caption',
+				__( 'PDF description template', 'mmww' ),
+				array ($this, 'admin_text' ),
+				'mmww',
+				'mmww_admin_application',
+				'application_caption'
+		);
+	
+		?>
+		<form action="options.php" method="post">
+	
+		<?php
+		settings_fields('mmww');
+		do_settings_sections('mmww');
+		?>
+	
+		<p class="submit">
+			<input name="Submit" type="submit" id="submit"
+				class="button button-primary"
+				value="<?php _e('Save Changes','mmww');?>" />
+		</p></form></div>
+
+   		<?php
     
-    
+	}
 }
+
+new MMWWAdmin();
+
