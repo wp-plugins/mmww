@@ -52,6 +52,12 @@ function mmww_do_everything () {
 	}
 	if (current_user_can( 'upload_files' )) {
 		require_once( 'code/mmww_media_upload.php' );
+		if ( version_compare( get_bloginfo( 'version' ), '3.5', '<' ) ) {
+			require_once( 'code/audio_shortcode_34_support.php');
+		} else {
+			require_once( 'code/audio_shortcode_35_support.php');
+		}
+		
 	}
 }
 

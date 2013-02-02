@@ -5,8 +5,10 @@
 
 class MMWWAdmin {
 
-	function __construct() {
-
+	/**
+	 * Initialize the administration page operations.
+	 */
+	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'admin_actions'));
 		add_action( 'admin_init', array( $this, 'register_setting'));
 	}
@@ -17,8 +19,7 @@ class MMWWAdmin {
 				__( 'Media Metadata', 'mmww' ),
 				'upload_files',
 				'mmww', 
-				array( $this, 'admin_page') );
-
+				array( $this, 'admin_page' ));
 	}
 
 	function register_setting(){
