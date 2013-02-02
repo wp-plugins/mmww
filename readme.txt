@@ -216,7 +216,7 @@ directory take precedence. For example, `/assets/screenshot-1.png` would win ove
 
 Audio Player button working for versions before Wordpress 3.5
 
-= 1.0.0 =
+= 0.9.3 =
 
  1. Metadata extraction working for jpg, png, mp3, pdf files. (There's no metadata in gif files, and tiff files aren't supported by WordPress).
  1. Integration with the V3.5 media manager is complete.
@@ -225,7 +225,7 @@ Audio Player button working for versions before Wordpress 3.5
  
 == Upgrade Notice ==
 
-= 1.0 =
+= 0.9.3 =
 Add support for the new Media Library popups in WordPress 3.5 and above. Add PNG support.
 
 If you're putting audio files into posts and pages and you upgrade to WordPress 3.5 or later, you'll find that the Audio Player button has vanished along 
