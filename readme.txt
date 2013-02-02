@@ -13,7 +13,7 @@ Integrate your media metadata workflow with WordPress's Media Library
 
 Figure out how to put keywords into a taxonomy if that's what the user wants.
 
-Get the MS-set Rating item to work properly.
+Get the Microsoft Windows Explorer-set Rating item to work properly.
 
 Add support for the Yet Another Photo Blog (YAPB) [plugin]{http://wordpress.org/extend/plugins/yet-another-photoblog/}
 
