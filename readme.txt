@@ -11,15 +11,19 @@ Integrate your media metadata workflow with WordPress's Media Library
 
 == To Do ==
 
-Add support for aac and video file metadata
+Add support for the Yet Another Photo Blog (YAPB) [plugin]{http://wordpress.org/extend/plugins/yet-another-photoblog/}
+
+Improve the syntax of the templates.
+
+Add support for aac and video file metadata.
 
 Ask for and receive lots of sample files from users, and use them to test.
 
-Come up with a better way to handle commas in metadata when generating audio tags.
+Come up with a better way to handle commas in metadata when generating audio shortcodes.
 
-Figure out some sort of taxonomy to handle the media ratings in XMP.
+Figure out a taxonomy to handle the media ratings in XMP.
 
-Try to make TIFF files work better. (Please let the author know if you need TIFF support.)
+Support TIFF files. (Please let the author know if you need TIFF support.)
 
 == Description ==
 
@@ -44,7 +48,7 @@ in WordPress.  So, for example, your photos can be ordered in the media library 
 order of the date and time they were taken.
 
 You can specify templates defining what metadata items should be used to create
-each WordPress attachment post's fields: title, caption, alt text, and descripion.
+each WordPress attachment post's fields: title, caption, alt text, and description.
 
 For audio files, MMWW can automatically create the [audio] shortcode provided by [Jetpack[(http://wordpress.org/extend/plugins/jetpack/). 
 If you don't have Jetpack, you can find that shortcode also in the [Shortpack](http://wordpress.org/extend/plugins/shortpack/) plugin.
