@@ -63,8 +63,8 @@ class MMWWAdmin {
 		$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
 
 		$choices = array (
-			'yes' => __( 'Media file creation date / time when available', 'mmww'),
-			'no' => __( 'Present date / time', 'mmww'),
+			'yes' => __( 'timestamps in media metadata, when available', 'mmww'),
+			'no' => __( 'dates of upload', 'mmww'),
 		);
 		$pattern = '<input type="radio" id="mmww_admin_use_creation_date" name="mmww_options[use_creation_date]" value="%1$s" %2$s> %3$s';
 
@@ -86,7 +86,7 @@ class MMWWAdmin {
 		$choice = (empty( $options['audio_shortcode'] )) ? 'disabled' : $options['audio_shortcode'];
 
 		$choices = array (
-			'media' => __( 'when the author selects Link To <em>Media File</em>', 'mmww'),
+			'media' => __( 'whenever the author selects Link To <em>Media File</em>', 'mmww'),
 			'never' => __( 'never', 'mmww'),
 		);
 		$pattern = '<input type="radio" id="mmww_admin_audio_shortcode" name="mmww_options[audio_shortcode]" value="%1$s" %2$s> %3$s';
@@ -147,7 +147,7 @@ class MMWWAdmin {
 	
 		add_settings_field(
 				'mmww_admin_use_creation_date',
-				__( 'Attachment upload date set from', 'mmww' ),
+				__( 'Set attachment dates using the ...', 'mmww' ),
 				array ($this, 'use_creation_date_text'),
 				'mmww',
 				'mmww_admin_general'

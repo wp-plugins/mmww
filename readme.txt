@@ -3,13 +3,17 @@ Contributors: olliejones
 Tags: media, audio, video, images, metadata, exif, id3, xmp, png, iptc, workflow, caption, alt
 Requires at least: 3.0.1
 Tested up to: 3.5.1
-Stable tag: 0.9.1
+Stable tag: 0.9.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Integrate your media metadata workflow with WordPress's Media Library 
 
 == To Do ==
+
+Figure out how to put keywords into a taxonomy if that's what the user wants.
+
+Get the MS-set Rating item to work properly.
 
 Add support for the Yet Another Photo Blog (YAPB) [plugin]{http://wordpress.org/extend/plugins/yet-another-photoblog/}
 

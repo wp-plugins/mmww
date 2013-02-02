@@ -10,7 +10,7 @@
 		*/
 /** current version number  */
 if (!defined('MMWW_VERSION_NUM')) {
-	define('MMWW_VERSION_NUM', '1.0.0');
+	define('MMWW_VERSION_NUM', '0.9.3');
 }
 /* set up some handy globals */
 if (!defined('MMWW_THEME_DIR')) {
