@@ -38,6 +38,7 @@ register_activation_hook( __FILE__, 'mmww_activate' );
 $saved = get_include_path();
 set_include_path( $saved . PATH_SEPARATOR . MMWW_PLUGIN_DIR . '/code' );
 
+
 add_action( 'init', 'mmww_do_everything' );
 
 function mmww_do_everything () {
@@ -56,8 +57,7 @@ function mmww_do_everything () {
 			require_once( 'code/audio_shortcode_34_support.php');
 		} else {
 			require_once( 'code/audio_shortcode_35_support.php');
-		}
-		
+		}		
 	}
 }
 

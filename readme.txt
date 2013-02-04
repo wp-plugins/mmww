@@ -13,8 +13,6 @@ Integrate your media metadata workflow with WordPress's Media Library
 
 Figure out how to put keywords into a taxonomy if that's what the user wants.
 
-Get the Microsoft Windows Explorer-set Rating item to work properly.
-
 Add support for the Yet Another Photo Blog (YAPB) [plugin]{http://wordpress.org/extend/plugins/yet-another-photoblog/}
 
 Improve the syntax of the templates.
@@ -177,6 +175,8 @@ in case your particular media workflow needs them.
 
 [ID3 for MP3 files](http://id3.org/)
 
+[The ID3 Popularimeter](http://en.wikipedia.org/wiki/ID3#ID3v2_Rating_tag_issue) -- music file ratings
+
 [EXIF for JPEG files](http://www.exif.org/)
 
 [IPTC Photo Metadata]{http://www.iptc.org/site/Photo_Metadata/)
@@ -222,6 +222,10 @@ Audio Player button working for versions before Wordpress 3.5
  1. Integration with the V3.5 media manager is complete.
  1. Automatic [audio] shortcode insertion working both pre- and post- WordPress 3.5.
  1. The Settings page allows specification of templates for populating attachment-post fields.
+ 
+ = 0.9.4 =
+ 
+ 1. Add support for file ratings set by Windows Explorer and media player.
  
 == Upgrade Notice ==
 

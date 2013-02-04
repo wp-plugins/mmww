@@ -189,9 +189,12 @@ class MMWWMedia {
 		if (array_key_exists($file, $this->meta_cache_by_filename)) {
 			return $this->meta_cache_by_filename[$file];
 		}
-		//TODO hang on to the file name to use as a title if nothing else works out.
+
 		$meta_accum = array();
 	
+		require_once 'xmp.php';
+		$xmp = new MMWWXMPReader($file);
+		
 		$ft = wp_check_filetype( $file );
 		$filetype = $ft['type'];
 		$filetype = $this->getfiletype($filetype);
@@ -199,11 +202,11 @@ class MMWWMedia {
 		/* merge up the metadata  -- later merges  overwrite earlier ones*/
 		switch ($filetype) {
 			case 'audio':
-				require_once 'xmp.php';
 				require_once 'id3.php';
-				$newmeta = mmww_get_id3_metadata ($file);
+				$id3 = new MMWWID3Reader($file);
+				$newmeta = $id3->get_metadata ($file);
 				$meta_accum = array_merge($meta_accum, $newmeta);
-				$newmeta = mmww_get_xmp_audio_metadata ($file);
+				$newmeta = $xmp->get_audio_metadata();
 				$meta_accum = array_merge($meta_accum, $newmeta);
 				$meta_accum['mmww_type'] = $filetype;
 				break;
@@ -231,8 +234,7 @@ class MMWWMedia {
 		}
 	
 		/* all kinds of files (including pdf), look for Adobe XMP publication metadata */
-		require_once 'xmp.php';
-		$newmeta =  mmww_get_xmp_metadata ($file);
+		$newmeta = $xmp->get_metadata();
 		if (! empty ($newmeta)) {
 			$meta_accum = array_merge($meta_accum, $newmeta);
 			$meta_accum['mmww_type'] = $filetype;
