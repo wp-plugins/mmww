@@ -5,14 +5,15 @@
  * @link http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
  */
 
-class PNG_Reader
+class MMWWPNGReader
 {
 	private $_chunks;
 	private $_fp;
 
 	function __construct($file) {
 		if (!file_exists($file)) {
-			throw new Exception('File does not exist');
+			unset ($this->_fp);
+			return;
 		}
 
 		$this->_chunks = array ();
@@ -20,14 +21,19 @@ class PNG_Reader
 		// Open the file
 		$this->_fp = fopen($file, 'r');
 
-		if (!$this->_fp)
-			throw new Exception('Unable to open file');
+		if (!$this->_fp) {
+			unset ($this->_fp);
+			return;
+		}
 
 		// Read the magic bytes and verify
 		$header = fread($this->_fp, 8);
 
-		if ($header != "\x89PNG\x0d\x0a\x1a\x0a")
-			throw new Exception('Is not a valid PNG image');
+		if ($header != "\x89PNG\x0d\x0a\x1a\x0a") {
+			/* not a PNG */
+			unset ($this->_fp);
+			return;
+		}
 
 		// Loop through the chunks. Byte 0-3 is length, Byte 4-7 is type
 		$chunkHeader = fread($this->_fp, 8);
@@ -55,10 +61,12 @@ class PNG_Reader
 
 	function __destruct() {
 		fclose($this->_fp);
+		unset ($this->fp);
+		unset ($this->_chunks);
 	}
 
 	// Returns all chunks of said type
-	public function get_chunks($type) {
+	private function get_chunks($type) {
 		if ($this->_chunks[$type] === null)
 			return null;
 
@@ -75,48 +83,51 @@ class PNG_Reader
 
 		return $chunks;
 	}
-}
 
-function mmww_get_png_metadata ($file) {
-	$keylookup = array (
-		'Description' => 'description',
-		'Author' => 'credit',
-		'Title' => 'title',
-		'Copyright' => 'copyright',
+	public function get_metadata () {
+		$meta = array();
+		if (!isset($this->_fp)) {
+			return $meta;
+		}
+		$keylookup = array (
+			'Description' => 'description',
+			'Author' => 'credit',
+			'Title' => 'title',
+			'Copyright' => 'copyright',
 		);
-	$meta = array();
-	try {
-		$png = new PNG_Reader($file);
-		$rawTextData = $png->get_chunks('tEXt');
-	}
-	catch (Exception $e) {
-		/* silently ignore failures to read metadata. */
+		try {
+			$png = $this;
+			$rawTextData = $png->get_chunks('tEXt');
+		}
+		catch (Exception $e) {
+			/* silently ignore failures to read metadata. */
+			return $meta;
+		}
+
+		foreach($rawTextData as $data) {
+			$sections = explode("\0", $data);
+
+			if ($sections > 1) {
+				$key = array_shift($sections);
+				if (array_key_exists ($key, $keylookup)) {
+					$key = $keylookup[$key];
+				} else {
+					$key = strtolower ($key);
+				}
+				$meta[$key] = implode("\0", $sections);
+			} else {
+				$meta[] = $data;
+			}
+		}
+		/* handle the creation time item */
+		if (array_key_exists ('creation time', $meta)) {
+			/* do the timezone stuff right; png creation time is in local time */
+			$previous = date_default_timezone_get();
+			@date_default_timezone_set(get_option('timezone_string'));
+			$meta['created_timestamp'] = strtotime($meta['creation time']);
+			@date_default_timezone_set($previous);
+			unset ($meta['creation time']);
+		}
 		return $meta;
 	}
-	
-	foreach($rawTextData as $data) {
-		$sections = explode("\0", $data);
-		
-		if ($sections > 1) {
-			$key = array_shift($sections);
-			if (array_key_exists ($key, $keylookup)) {
-				$key = $keylookup[$key];
-			} else {
-				$key = strtolower ($key);
-			}				
-			$meta[$key] = implode("\0", $sections);
-		} else {
-			$meta[] = $data;
-		}
-	}
-	/* handle the creation time item */
-	if (array_key_exists ('creation time', $meta)) {
-		/* do the timezone stuff right; png creation time is in local time */
-		$previous = date_default_timezone_get();
-		@date_default_timezone_set(get_option('timezone_string'));
-		$meta['created_timestamp'] = strtotime($meta['creation time']);
-		@date_default_timezone_set($previous);
-		unset ($meta['creation time']);
-	}
-	return $meta;
 }

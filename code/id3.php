@@ -12,8 +12,12 @@ class  MMWWID3Reader {
 			$this->id3 = new Zend_Media_Id3v2($file);
 		}
 		catch (Zend_Media_Id3_Exception $e) {
-			unset ($id3);
+			unset ($this->id3);
 		}
+	}
+	
+	function __destruct() {
+		unset ($this->id3);
 	}
 
 

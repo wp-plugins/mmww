@@ -8,6 +8,11 @@ class MMWWXMPReader {
 	function __construct($file) {
 		$this->xmp = $this->get_xmp($file);
 	}
+	
+	function __destruct() {
+		unset ($this->xmp);
+	}
+	
 
 	private $xmp_metadata_list = array (
 		'rating' => '//xmp:Rating',
@@ -110,7 +115,7 @@ class MMWWXMPReader {
 			foreach ($list as $tag => $xpath) {
 				/* use @ here to avoid error messages when XML namespaces are unexpected */
 				$it = @$xmp->xpath($xpath);
-				if ($it) {
+				if (!($it === False)) {
 					$gather = array();
 					foreach($it as $s) {
 						$gather[] = $s;

@@ -189,55 +189,54 @@ class MMWWMedia {
 		if (array_key_exists($file, $this->meta_cache_by_filename)) {
 			return $this->meta_cache_by_filename[$file];
 		}
-
-		$meta_accum = array();
 	
-		require_once 'xmp.php';
-		$xmp = new MMWWXMPReader($file);
-		
+		/* figure out the filetype */
 		$ft = wp_check_filetype( $file );
 		$filetype = $ft['type'];
 		$filetype = $this->getfiletype($filetype);
-	
-		/* merge up the metadata  -- later merges  overwrite earlier ones*/
+		
+		/* create a media-specific ordered list of metadata readers
+		 * avoid doing the require operations unless
+		 * the code for the particular data type
+		 * is required -- this is a server-side operation.
+		 */
+		$readers = array();
 		switch ($filetype) {
 			case 'audio':
 				require_once 'id3.php';
-				$id3 = new MMWWID3Reader($file);
-				$newmeta = $id3->get_metadata ($file);
-				$meta_accum = array_merge($meta_accum, $newmeta);
-				$newmeta = $xmp->get_audio_metadata();
-				$meta_accum = array_merge($meta_accum, $newmeta);
-				$meta_accum['mmww_type'] = $filetype;
+				$readers[] = new MMWWID3Reader($file);
 				break;
-	
+		
 			case 'image':
 				require_once 'exif.php';
-				$newmeta = mmww_get_exif_metadata ($file);
-				$meta_accum = array_merge($meta_accum, $newmeta);
 				require_once 'png.php';
-				$newmeta = mmww_get_png_metadata ($file);
-				$meta_accum = array_merge($meta_accum, $newmeta);
 				require_once 'iptc.php';
-				$newmeta = mmww_get_iptc_metadata ($file);
-				$meta_accum = array_merge($meta_accum, $newmeta);
-				$meta_accum['mmww_type'] = $filetype;
+				$readers[] = new MMWWEXIFReader($file);
+				$readers[] = new MMWWPNGReader($file);
+				$readers[] = new MMWWIPTCReader($file);
 				break;
-	
+		
 			case 'application':
-				$meta_accum['mmww_type'] = $filetype;
 				/* this is for pdf. Processing below for that */
 				break;
 					
 			default:
-				$meta['warning'] = __('Unrecognized media type in file ','mmww') . "$file ($filetype)";
+				$meta_accum['warning'] = __('Unrecognized media type in file ','mmww') . "$file ($filetype)";
 		}
-	
-		/* all kinds of files (including pdf), look for Adobe XMP publication metadata */
-		$newmeta = $xmp->get_metadata();
-		if (! empty ($newmeta)) {
+
+		require_once 'xmp.php';		
+		$readers[]= new MMWWXMPReader($file);
+
+		/* merge up the metadata  -- later merges overwrite earlier ones*/
+		$meta_accum = array();
+		$meta_accum['mmww_type'] = $filetype;
+		foreach ($readers as $reader) {
+			if (method_exists($reader, 'get_audio_metadata')) {
+				$newmeta = $reader->get_audio_metadata();
+				$meta_accum = array_merge($meta_accum, $newmeta);
+			}
+			$newmeta = $reader->get_metadata();
 			$meta_accum = array_merge($meta_accum, $newmeta);
-			$meta_accum['mmww_type'] = $filetype;
 		}
 		
 		$meta = array_merge($meta, $meta_accum);
