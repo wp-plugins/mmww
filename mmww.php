@@ -49,6 +49,8 @@ function mmww_do_everything () {
 		}
 	}
 	if ( is_admin() && current_user_can ( 'manage_options' )) {
+		require_once ( 'code/pdfextras.php' );
+		require_once ( 'code/reread.php' );
 		require_once ( 'code/mmww_admin.php' );
 	}
 	if (current_user_can( 'upload_files' )) {
