@@ -188,13 +188,19 @@ class MMWWRereader {
 	 */
 	function add_reread_action($actions, $post, $detached) {
 		$addlink = false;
+		$link = '';
 		$url = $this->get_reread_metadata_post_link($post->ID);
 		if (!empty($url)) {
-			$actions['reread'] = '<a href="' . $url . '">' . __( 'Reload Metadata', 'mmww' ) . '</a>';
+			$link = '<a href="' . $url . '">' . __( 'Reload Metadata', 'mmww' ) . '</a>';
 			$addlink = true;
+		}
+		if ($post->post_mime_type == 'image/gif') {
+			/* gifs lack metadata, don't offer to read it. */
+			$addlink = false;
 		}
 		if ($addlink) {
 			/* reorder the links to make more sense */
+			$actions['reread'] = $link;
 			$result = array();
 			$order = array ('edit', 'reread', 'delete', 'view');
 			foreach ($order as $o) {
