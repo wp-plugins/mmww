@@ -2,19 +2,186 @@
 
 
 class MMWWRereader {
+
 	public function __construct() {
+		add_action ( 'dbx_post_advanced', array ($this,'reread_before_form_populate'));
+		add_action ( 'edit_form_after_editor', array ($this,'reread_after_form_populate'));
 		add_filter( 'media_row_actions', array( $this, 'add_reread_action' ),10,3);
-		//add_filter( 'get_edit_post_link', array( $this, 'reread_link'), 10, 3);
+		add_action( 'admin_notices', array( $this, 'reread_notice'));
 	}
-	
-	
-	//$actions = apply_filters( 'media_row_actions', $actions, $post, $this->detached );
-	//class-wp-media-list-table.php calls this guy
-	
+
+
+	private function isRereading ($phase) {
+		if (	array_key_exists('action',$_REQUEST)  && $_REQUEST['action'] == 'edit' &&
+				array_key_exists('mmww',$_REQUEST)  &&
+				array_key_exists('post',$_REQUEST)  ) {
+
+			/* we're actually doing mmww processing on this edit request */
+
+			$mmwwop = $_REQUEST['mmww'];
+			if ($mmwwop == $phase) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function reread_notice(){
+		if ($this->isRereading(3)) {
+
+			/* we're sure we're displaying the reread-metadata result */
+			echo '<div id="message" class="updated"><p>';
+			_e('Media attachment metadata reloaded from file. Update to save it.' , 'mmww');
+			echo '</p></div>';
+
+		}
+	}
+
 	/**
-	 * result looks like this: 
-	 *   $action['reread'] = http://host/wp-admin/post.php?post=999&action=reread&_wpnonce=54456a9879
-	 * @param array $actions 
+	 * this action gets called after the edit form is populated.
+	 * it's activated by mmww=3 and a valid nonce.
+	 * The desired behavior is to require the user to SAVE the
+	 * form, so this action restores the old metadata values to the
+	 * dbms. The Save will overwrite them, and they'll get left alone
+	 * if the user abandons the edit.
+	 */
+	function reread_after_form_populate () {
+		if ($this->isRereading(3)) {
+			$post = get_post();
+			/* we have stuff to do at this stage */
+			/* make sure our nonce is good */
+			check_admin_referer("edit-post_{$post->ID}");
+
+			/* this saves the previous values, so an update is required to actually
+			 * apply the new values. Gives the user a chance to vet the reloaded metadata
+			 */
+			$meta = $this->retrieve_old($post);
+			$this->store($post, $meta);
+		}
+	}
+
+	/**
+	 * this action gets called before the edit form is populated.
+	 * It's activated by mmww=1 or mmww=2 and a valid nonce.
+	 * (mmww=1 is a bulk reread function not yet implement)
+	 * It puts the new values of the metadata into the DBMS, and
+	 * then forces a redirect and exit, so the editor gets reloaded.
+	 */
+	function reread_before_form_populate() {
+		if ($this->isRereading(2) || $this->isRereading(1)) {
+			$post = get_post();
+			check_admin_referer("edit-post_{$post->ID}");
+
+			$meta = $this->get_current($post);
+			$this->save_old($post, $meta);
+
+			$meta = $this->get_new($post);
+			$this->store($post, $meta);
+
+			/* now reissue the request with mmww=3 */
+			$_REQUEST['mmww'] = 3;
+			$url = admin_url( '/post.php?' . http_build_query($_REQUEST));
+			wp_redirect ($url);
+			exit();
+		}
+		/* only return if we're supposed to proceed, otherwise redirect and exit */
+	}
+
+	/**
+	 * list of meta fields corresponding to wp_posts columns.
+	 * @var associative array
+	 */
+	private $fields = array('title'=>'post_title', 'caption'=>'post_content',
+						'displaycaption' => 'post_excerpt');
+
+	function get_current ($post) {
+		$meta = array();;
+		$poststuff = get_post($post->ID, ARRAY_A);
+		foreach ($this->fields as $k => $v) {
+			if (!empty($poststuff[$v])) {
+				$meta[$k] = $poststuff[$v];
+			}
+		}
+
+		$meta['alt'] = get_post_meta ($post->ID, '_wp_attachment_image_alt', true);
+		$oldmeta = get_post_meta ($post->ID, '_wp_attachment_metadata', true);
+		$meta['image_meta'] = $oldmeta['image_meta'];
+		return $meta;
+	}
+
+	function get_new ($post) {
+
+		$meta = wp_read_image_metadata(get_attached_file($post->ID));
+		$cleanmeta = apply_filters( 'mmww_filter_metadata', $meta );
+		$newmeta = apply_filters ('mmww_format_metadata', $cleanmeta);
+
+		$newmeta['image_meta'] = $meta;
+		return $newmeta;
+	}
+
+	function store ($post, $meta) {
+
+		/* $meta[caption] goes into wp_posts.post_content. This is shown as "description" in the UI.
+		 * $meta[title] goes into wp_posts.post_title. This is shown as "title"
+		*  $meta[displaycaption] into wp_posts.post_excerpt. This is shown as "caption" in the UI.
+		*  $meta[alt] into post metadata
+		*/
+
+		$updates = array();
+
+		$id = $post->ID;
+		foreach ($this->fields as $k => $v) {
+			if (!empty($meta[$k])) {
+				$updates[$v] = $meta[$k];
+			}
+		}
+
+		/* make any updates needed to the posts table. */
+		if (!empty ($updates)) {
+			global $wpdb;
+			$where = array( 'ID' => $id );
+			$wpdb->update( $wpdb->posts, $updates, $where );
+			clean_post_cache ($id);
+		}
+
+		/* handle the image alt text (screenreader etc) which goes into a postmeta row */
+		if (!empty($meta['alt'])) {
+			update_post_meta ($id, '_wp_attachment_image_alt', $meta['alt']);
+		}
+
+		/* handle the image_meta subfield of the attachment metadata */
+		$oldmeta = get_post_meta ($id, '_wp_attachment_metadata', true);
+		if (array_key_exists('image_meta', $oldmeta) && array_key_exists('image_meta', $meta)) {
+			$newmeta = array_merge ($oldmeta['image_meta'], $meta['image_meta']);
+			$oldmeta['image_meta'] = $newmeta;
+			update_post_meta($id, '_wp_attachment_metadata', $oldmeta);
+		}
+
+	}
+
+	function save_old ($post, $meta) {
+		update_post_meta($post->ID, '_mmww_saved_attachment_metadata', $meta);
+	}
+
+	function retrieve_old ($post) {
+		$saved = get_post_meta($post->ID, '_mmww_saved_attachment_metadata', true);
+		$meta = array();
+		$meta = $saved['image_meta'];
+		foreach ($this->fields as $k => $v) {
+			if (!empty($saved[$k])) {
+				$meta[$k] = $saved[$k];
+			}
+		}
+		delete_post_meta($post->ID, '_mmww_saved_attachment_metadata');
+		return $meta;
+
+	}
+
+
+	/**
+	 * result looks like this:
+	 *   $action['reread'] = http://host/wp-admin/post.php?post=999&action=reread&_wpnonce=abcdef9879
+	 * @param array $actions
 	 * @param Post $post
 	 * @param boolean $detached
 	 * @returns array of actions
@@ -23,7 +190,7 @@ class MMWWRereader {
 		$addlink = false;
 		$url = $this->get_reread_metadata_post_link($post->ID);
 		if (!empty($url)) {
-			$actions['reread'] = '<a href="' . $url . '">' . __( 'Reread Metadata', 'mmww' ) . '</a>';
+			$actions['reread'] = '<a href="' . $url . '">' . __( 'Reload Metadata', 'mmww' ) . '</a>';
 			$addlink = true;
 		}
 		if ($addlink) {
@@ -44,7 +211,7 @@ class MMWWRereader {
 		/* nothing to change, pass through */
 		return $actions;
 	}
-	
+
 	/**
 	 * Retrieve reread-metadata link for post
 	 * cribbed from link-template.php
@@ -64,82 +231,26 @@ class MMWWRereader {
 		if ($post->post_type != 'attachment')
 			return;
 		/* can we find, and read, the original media file */
-		$file = $this->get_attachment_path( $id );
+		$file = get_attached_file( $id );
 		if (empty($file))
 			return;
 		if (!file_exists($file))
 			return;
-		
+
 		$post_type_object = get_post_type_object( $post->post_type );
 		if ( !$post_type_object )
 			return;
-	
+
 		if ( !current_user_can( $post_type_object->cap->edit_post, $post->ID ) )
 			return;
-	
-		$action = 'reread';
-	
+
+		$action = 'edit';
+
 		$reread_link = add_query_arg( 'action', $action, admin_url( sprintf( $post_type_object->_edit_link, $post->ID ) ) );
-	
+		$reread_link = add_query_arg( 'mmww', '2', $reread_link );
+
 		return apply_filters( 'get_reread_post_link', wp_nonce_url( $reread_link, "$action-post_{$post->ID}" ), $post->ID );
 	}
-	
-	
-	
-	/**
-	 * 
-	 * @param string $url
-	 * @param Post $post
-	 * @param string $context
-	 * @return url string.
-	 */
-	function reread_link ( $url, $post, $context ) {
-		//action=edit get changed to //action=reread
-		$p = stripos ( $url, 'action=edit' );
-		if ( ! $p === False ) {
-			$s = preg_replace ( '/action=edit/', 'action=reread', $url );
-			return $s;
-		}
 
-		return $url;
-	}
-	
-	/**
-	 * Retrieve the pathname in the file system for an attachment's file.
-	 *   (cribbed from post.php)
-	 * @since 2.1.0
-	 *
-	 * @param int $post_id Attachment ID.
-	 * @return string
-	 */
-	private function get_attachment_path( $post_id = 0 ) {
-		$post_id = (int) $post_id;
-		if ( !$post =& get_post( $post_id ) )
-			return false;
-	
-		if ( 'attachment' != $post->post_type )
-			return false;
-	
-		$result = '';
-		if ( $file = get_post_meta( $post->ID, '_wp_attached_file', true) ) { //Get attached file meta
-			if ( ($uploads = wp_upload_dir()) && false === $uploads['error'] ) { //Get upload directory
-				if ( 0 === strpos($file, $uploads['basedir']) ) { //Check that the upload base exists in the file location
-					$result = $file;
-				}
-				elseif ( false !== strpos($file, 'wp-content/uploads') ) {
-					$result = $uploads['basedir'] . substr( $file, strpos($file, 'wp-content/uploads') + 18 );
-				}
-				else {
-					$result = $uploads['basedir'] . "/$file"; //Its a newly uploaded file, therefore $file is relative to the basedir.
-				}
-			}
-		}
-	
-		if ( empty( $result ) )
-			return false;
-	
-		return $result;
-	}
-	
 }
 new MMWWRereader ();

@@ -12,7 +12,7 @@ class MMWWPNGReader
 
 	function __construct($file) {
 		if (!file_exists($file)) {
-			unset ($this->_fp);
+			$this->_fp = -1;
 			return;
 		}
 
@@ -22,7 +22,7 @@ class MMWWPNGReader
 		$this->_fp = fopen($file, 'r');
 
 		if (!$this->_fp) {
-			unset ($this->_fp);
+			$this->_fp = -1;
 			return;
 		}
 
@@ -31,7 +31,8 @@ class MMWWPNGReader
 
 		if ($header != "\x89PNG\x0d\x0a\x1a\x0a") {
 			/* not a PNG */
-			unset ($this->_fp);
+			fclose($this->_fp);
+			$this->_fp = -1;
 			return;
 		}
 
@@ -60,8 +61,10 @@ class MMWWPNGReader
 	}
 
 	function __destruct() {
-		fclose($this->_fp);
-		unset ($this->fp);
+		if ( !isset ($this->_fp)) {
+			fclose($this->_fp);
+			$this->_fp = -1;
+		}
 		unset ($this->_chunks);
 	}
 
@@ -86,7 +89,7 @@ class MMWWPNGReader
 
 	public function get_metadata () {
 		$meta = array();
-		if (!isset($this->_fp)) {
+		if ($this->_fp == -1) {
 			return $meta;
 		}
 		$keylookup = array (

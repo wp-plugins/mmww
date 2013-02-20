@@ -11,7 +11,7 @@ class MMWWEXIFReader {
 			$this->exif = @exif_read_data( $file );
 		}
 	}
-	
+
 	function __destruct() {
 		unset ($this->exif);
 	}
@@ -38,7 +38,7 @@ class MMWWEXIFReader {
 	}
 
 
-	public function get_metadata ($file) {
+	public function get_metadata () {
 
 		$meta = array();
 
@@ -82,7 +82,7 @@ class MMWWEXIFReader {
 				$meta['longitude'] = $this->getGPS( $exif['GPSLongitudeRef'], $exif['GPSLongitude'] );
 				$meta['latitude'] =  $this->getGPS( $exif['GPSLatitudeRef'], $exif['GPSLatitude'] );
 			}
-				
+
 			if ( ! empty($exif['Model'] ) )
 				$meta['camera'] = utf8_encode( trim( $exif['Model'] ) );
 
@@ -190,7 +190,7 @@ class MMWWEXIFReader {
 					2 => _x( 'Auto bracket','exposure_mode', 'mmww' ));
 				$meta['exposuremode'] = $exposure_mode_data[intval($exif['ExposureMode'])];
 			}
-				
+
 			if ( ! empty($exif['ExposureProgram'] ) ) {
 				/* translators: these are human-readable renderings of the EXIF exposure program codes */
 				$exposure_program_data = array(

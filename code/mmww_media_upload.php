@@ -4,13 +4,15 @@ class MMWWMedia {
 
 	/** a cache of metadata keyed on the name of the file */
 	private $meta_cache_by_filename = array();
-	
+
 	function __construct() {
 		/* set up the various filters etc. */
 
-		/* metadata display filters; internal to mmww */
+		/* metadata cleanup filters; internal to mmww */
 		add_filter( 'mmww_filter_metadata', array ($this, 'add_tidy_metadata') ,10, 1);
 		add_filter( 'mmww_filter_metadata', array ($this, 'remove_meaningless_metadata') ,11, 1);
+		/* metadata display filters; internal to mmww */
+		add_filter( 'mmww_format_metadata', array ($this, 'format_metadata') ,12, 1);
 		/* attachment metadata specific */
 		add_filter( 'wp_generate_attachment_metadata', array( $this, 'refetch_metadata' ), 10, 2 );
 		add_filter( 'wp_update_attachment_metadata', array( $this, 'update_metadata' ),10,2 );
@@ -19,39 +21,39 @@ class MMWWMedia {
 		add_filter( 'wp_read_image_metadata', array ($this, 'apply_template_metadata' ),90,3 );
 
 	}
-	
+
 	/**
-	 * hook function for filter internal to mmww 
+	 * hook function for filter internal to mmww
 	 * @param array $meta of metadata key/val strings
 	 * @return array of metadata
 	 */
-	function add_tidy_metadata ($meta) {	
+	function add_tidy_metadata ($meta) {
 		/* get a creation time string from the timestamp */
 		if ( ! empty ($meta['created_timestamp']) ) {
 			/* do the timezone stuff right; png creation time is in local time */
 			$previous = date_default_timezone_get();
 			@date_default_timezone_set(get_option('timezone_string'));
-			$meta['created_time'] = 
+			$meta['created_time'] =
 				date_i18n( get_option('date_format'), $meta['created_timestamp'] ) . ' ' .
 		     	date_i18n( get_option('time_format'), $meta['created_timestamp'] );
-			@date_default_timezone_set($previous);	
-		}	
+			@date_default_timezone_set($previous);
+		}
 		return $meta;
 	}
-	
+
 	/**
-	 * hook function for filter internal to mmww 
+	 * hook function for filter internal to mmww
 	 * @param array $meta of metadata key/val strings
 	 * @return array of metadata
 	 */
 	function remove_meaningless_metadata ($meta) {
-			
+
 		/* eliminate redundant items from the metadata */
 		$tozap = array('aperture','shutter_speed', 'warning');
 		foreach ($tozap as $zap) {
 			unset ($meta[$zap]);
 		}
-	
+
 		/* eliminate zero or empty items except title and caption */
 		$keep = array ('title' => 'yes', 'caption' => 'yes');
 		foreach ($meta as $key => $val) {
@@ -68,6 +70,26 @@ class MMWWMedia {
 	}
 
 	/**
+	 * format the metadata according to  templates
+	 * @param array $meta
+	 * @return array of formatted metadata
+	 */
+	function format_metadata ($meta) {
+		$codes = array ('title', 'caption', 'alt', 'displaycaption');
+		$newmeta = array();
+		foreach ($codes as $code) {
+			$codetype = $meta['mmww_type'].'_'.$code;
+			$gen = $this->make_string ($meta,$codetype);
+			if(!empty($gen)) {
+				$newmeta[$code] = $gen;
+			}
+		}
+
+		return $newmeta;
+	}
+
+
+	/**
 	 * turn audio/mpeg into audio, image/tiff into image, etc
 	 * @param string $f MIME type
 	 * @return string basic data type
@@ -76,7 +98,7 @@ class MMWWMedia {
 		$ff = explode( '/', $f );
 		$filetype = $ff[0];
 		$filetype = strtolower( $filetype );
-		return $filetype;	
+		return $filetype;
 	}
 
 	/**
@@ -94,37 +116,37 @@ class MMWWMedia {
 		 */
 		if (!array_key_exists('image_meta', $metadata)) {
 			/* no image_meta, we need to get it. */
-			$file = $this->get_attachment_path ($id);
+			$file = get_attached_file($id);
 			if (array_key_exists($file, $this->meta_cache_by_filename)) {
 				$image_meta = $this->meta_cache_by_filename[$file];
 			}  else {
 				$image_meta = wp_read_image_metadata( $file );
 			}
-			
+
 			if ( $image_meta ) {
 				$metadata['image_meta'] = $image_meta;
-			}		
+			}
 		}
 		return $metadata;
 	}
 
 	/**
-	 * Filter to handle extra stuff in attachment metadata update
+	 * Function to handle extra stuff in attachment metadata update
 	 * @param array $data attachment data array. Can be an empty array
-	 * @param int $id attachment id 
+	 * @param int $id attachment id
 	 * @return data, modified as needed
 	 */
 	function update_metadata ($data, $id) {
-	
+
 		if ( !empty ( $data ) && array_key_exists('image_meta', $data) ) {
 			$meta = $data['image_meta'];
 			$updates = array();
-		
+
 			/* handle the caption for photos, which goes into wp_posts.post_excerpt. */
 			if (!empty($meta['displaycaption'])) {
 				$updates['post_excerpt'] = $meta['displaycaption'];
 			}
-			
+
 			/* update the attachment post_date and post_date_gmt if that's what the admin wants and the metadata has it */
 			$options = get_option( 'mmww_options' );
 			$choice = (empty( $options['use_creation_date'] )) ? 'no' : $options['use_creation_date'];
@@ -148,24 +170,24 @@ class MMWWMedia {
 				$updates['post_date_gmt'] = $ztime;
 				@date_default_timezone_set($previous);
 			}
-			
+
 			/* make any updates needed to the posts table. */
 			if (!empty ($updates)) {
 				global $wpdb;
-				$where = array( 'ID' => $id );	
+				$where = array( 'ID' => $id );
 				$wpdb->update( $wpdb->posts, $updates, $where );
 				clean_post_cache ($id);
 			}
-		
+
 			/* handle the image alt text (screenreader etc) which goes into a postmeta row */
 			if (!empty($meta['alt'])) {
 				update_post_meta ($id, '_wp_attachment_image_alt', $meta['alt']);
-			} 
-			
-			/* stash tne metadata itself so we don't have to reread it from the file for site visitors */	
+			}
+
+			/* stash tne metadata itself so we don't have to reread it from the file for site visitors */
 			// need this? update_post_meta ($id, MMWW_POSTMETA_KEY, json_encode($meta));
 		}
-		
+
 		return $data;
 	}
 
@@ -180,21 +202,21 @@ class MMWWMedia {
 	 * @return bool|array False on failure. Image metadata array on success.
 	 */
 	function read_media_metadata ($meta, $file, $sourceImageType) {
-	
+
 		if ( ! file_exists( $file ) ) {
 			return $meta;
 		}
-		
+
 		/* if the metadata is cached, return it right away */
 		if (array_key_exists($file, $this->meta_cache_by_filename)) {
 			return $this->meta_cache_by_filename[$file];
 		}
-	
+
 		/* figure out the filetype */
 		$ft = wp_check_filetype( $file );
 		$filetype = $ft['type'];
 		$filetype = $this->getfiletype($filetype);
-		
+
 		/* create a media-specific ordered list of metadata readers
 		 * avoid doing the require operations unless
 		 * the code for the particular data type
@@ -206,7 +228,7 @@ class MMWWMedia {
 				require_once 'id3.php';
 				$readers[] = new MMWWID3Reader($file);
 				break;
-		
+
 			case 'image':
 				require_once 'exif.php';
 				require_once 'png.php';
@@ -215,16 +237,16 @@ class MMWWMedia {
 				$readers[] = new MMWWPNGReader($file);
 				$readers[] = new MMWWIPTCReader($file);
 				break;
-		
+
 			case 'application':
 				/* this is for pdf. Processing below for that */
 				break;
-					
+
 			default:
 				$meta_accum['warning'] = __('Unrecognized media type in file ','mmww') . "$file ($filetype)";
 		}
 
-		require_once 'xmp.php';		
+		require_once 'xmp.php';
 		$readers[]= new MMWWXMPReader($file);
 
 		/* merge up the metadata  -- later merges overwrite earlier ones*/
@@ -238,9 +260,9 @@ class MMWWMedia {
 			$newmeta = $reader->get_metadata();
 			$meta_accum = array_merge($meta_accum, $newmeta);
 		}
-		
+
 		$meta = array_merge($meta, $meta_accum);
-	
+
 		return $meta;
 	}
 
@@ -253,77 +275,32 @@ class MMWWMedia {
 	 * @return bool|array False on failure. Image metadata array on success.
 	 */
 	function apply_template_metadata ($meta, $file, $sourceImageType) {
-	
+
 		if ( empty ($meta) && empty ($meta['mmww_type'])) {
 			/* if there's no mmww metadata detected, don't do anything more */
 			return $meta;
 		}
-	
+
 		/* if the metadata is cached, return it right away */
 		if (array_key_exists($file, $this->meta_cache_by_filename)) {
 			return $this->meta_cache_by_filename[$file];
 		}
-		
+
 		$cleanmeta = apply_filters( 'mmww_filter_metadata', $meta );
-		
+
 		/* $meta[caption] goes into wp_posts.post_content. This is shown as "description" in the UI.
 		 * $meta[title] goes into wp_posts.post_title. This is shown as "title"
 		 * we don't have a $meta item to go into wp_posts.post_excerpt. This is shown as "caption" in the UI.
 		 */
-		
-		$codes = array ('title', 'caption', 'alt', 'displaycaption');
-		$newmeta = array();	
-		foreach ($codes as $code) {
-			$codetype = $meta['mmww_type'].'_'.$code;
-			$gen = $this->make_string ($cleanmeta,$codetype);
-			if(!empty($gen)) {
-				$newmeta[$code] = $gen;
-			}
-		}
-		
+
+		$newmeta = apply_filters ('mmww_format_metadata', $cleanmeta);
+
 		$meta = array_merge($cleanmeta, $newmeta);
 		/* cache the resulting metadata */
 		$this->meta_cache_by_filename[$file] = $meta;
 		return $meta;
 	}
 
-	/**
-	 * Retrieve the pathname in the file system for an attachment's file.
-	 *   (cribbed from post.php)
-	 * @since 2.1.0
-	 *
-	 * @param int $post_id Attachment ID.
-	 * @return string
-	 */
-	private function get_attachment_path( $post_id = 0 ) {
-		$post_id = (int) $post_id;
-		if ( !$post =& get_post( $post_id ) )
-			return false;
-	
-		if ( 'attachment' != $post->post_type )
-			return false;
-	
-		$result = '';
-		if ( $file = get_post_meta( $post->ID, '_wp_attached_file', true) ) { //Get attached file meta
-			if ( ($uploads = wp_upload_dir()) && false === $uploads['error'] ) { //Get upload directory
-				if ( 0 === strpos($file, $uploads['basedir']) ) { //Check that the upload base exists in the file location
-					$result = $file;
-				}	
-				elseif ( false !== strpos($file, 'wp-content/uploads') ) {
-					$result = $uploads['basedir'] . substr( $file, strpos($file, 'wp-content/uploads') + 18 );
-				}
-				else {
-					$result = $uploads['basedir'] . "/$file"; //Its a newly uploaded file, therefore $file is relative to the basedir.
-				}
-			}
-		}
-	
-		if ( empty( $result ) )
-			return false;
-	
-		return $result;
-	}
-	
 	/**
 	 * make a desciption or caption string from the metadata and the template
 	 * @param array $meta metadata array
@@ -344,8 +321,8 @@ class MMWWMedia {
 			if (!($p===False)) {   /* start position of next {token} */
 				/* move the stuff before the token to the result string */
 				$r .= substr($t,0,$p);  $t = substr($t,$p);
-	
-				$p = strpos($t,'}'); /* position of next } */	
+
+				$p = strpos($t,'}'); /* position of next } */
 				if (!($p === False)) {
 					/* grab the token from the stream */
 					$p += 1; /* include the ending } */
@@ -388,9 +365,9 @@ class MMWWMedia {
 			$string .= '<tr><td>' . $tag . '</td><td>' . $value .'</td></tr>' . "\n";
 		}
 		$string .= '</table>' . "\n";
-	
+
 		return $string;
 	}
-} 
+}
 
 new MMWWMedia();

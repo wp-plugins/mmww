@@ -5,7 +5,7 @@ class MMWWIPTCReader {
 	private $iptc;
 
 	function __construct($file) {
-		unset ($this->iptc);
+		$this->iptc = false;
 		// fetch additional info from iptc if available
 		if ( is_callable( 'iptcparse' ) ) {
 			getimagesize( $file, $info );
@@ -14,9 +14,9 @@ class MMWWIPTCReader {
 			}
 		}
 	}
-	
+
 	function __destruct() {
-		unset($this->iptc);
+		$this->iptc = false;
 	}
 
 
@@ -29,7 +29,7 @@ class MMWWIPTCReader {
 		// read iptc, since it might contain data not available in exif such
 		// as caption, description etc
 
-		if ($this->iptc) {
+		if (!(False === $this->iptc)) {
 			$iptc = $this->iptc;
 			// headline, "A brief synopsis of the caption."
 			if ( ! empty( $iptc['2#105'][0] ) )
