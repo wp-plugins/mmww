@@ -63,7 +63,7 @@ class MMWWRereader {
 	/**
 	 * this action gets called before the edit form is populated.
 	 * It's activated by mmww=1 or mmww=2 and a valid nonce.
-	 * (mmww=1 is a bulk reread function not yet implement)
+	 * (mmww=1 is a bulk reread function not yet implemented.)
 	 * It puts the new values of the metadata into the DBMS, and
 	 * then forces a redirect and exit, so the editor gets reloaded.
 	 */
@@ -232,23 +232,23 @@ class MMWWRereader {
 	function get_reread_metadata_post_link( $id = 0 ) {
 		/* valid post */
 		if ( !$post = get_post( $id ) )
-			return;
+			return null;
 		/* is it an attachment (media file) ? */
 		if ($post->post_type != 'attachment')
-			return;
+			return null;
 		/* can we find, and read, the original media file */
 		$file = get_attached_file( $id );
 		if (empty($file))
-			return;
+			return null;
 		if (!file_exists($file))
-			return;
+			return null;
 
 		$post_type_object = get_post_type_object( $post->post_type );
 		if ( !$post_type_object )
-			return;
+			return null;
 
 		if ( !current_user_can( $post_type_object->cap->edit_post, $post->ID ) )
-			return;
+			return null;
 
 		$action = 'edit';
 

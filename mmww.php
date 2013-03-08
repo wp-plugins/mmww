@@ -9,23 +9,23 @@ Author URI: http://www.plumislandmedia.net/about/
 Text Domain: mmww
 */
 /** current version number  */
-if (!defined('MMWW_VERSION_NUM')) {
+if ( !defined( 'MMWW_VERSION_NUM' ) ) {
 	define('MMWW_VERSION_NUM', '0.9.3');
 }
 /* set up some handy globals */
-if (!defined('MMWW_THEME_DIR')) {
+if ( !defined( 'MMWW_THEME_DIR' ) ) {
 	define('MMWW_THEME_DIR', ABSPATH . 'wp-content/themes/' . get_template());
 }
-if (!defined('MMWW_PLUGIN_NAME')) {
-	define('MMWW_PLUGIN_NAME', trim(dirname(plugin_basename(__FILE__)), '/'));
+if ( !defined( 'MMWW_PLUGIN_NAME' ) ) {
+	define('MMWW_PLUGIN_NAME', trim( dirname( plugin_basename( __FILE__ ) ), '/' ));
 }
-if (!defined('MMWW_PLUGIN_DIR')) {
+if ( !defined( 'MMWW_PLUGIN_DIR' ) ) {
 	define('MMWW_PLUGIN_DIR', WP_PLUGIN_DIR . '/' . MMWW_PLUGIN_NAME);
 }
-if (!defined('MMWW_PLUGIN_URL')) {
+if ( !defined( 'MMWW_PLUGIN_URL' ) ) {
 	define('MMWW_PLUGIN_URL', WP_PLUGIN_URL . '/' . MMWW_PLUGIN_NAME);
 }
-if (!defined('MMWW_POSTMETA_KEY')) {
+if ( !defined( 'MMWW_POSTMETA_KEY' ) ) {
 	define('MMWW_POSTMETA_KEY', '_' . MMWW_PLUGIN_NAME . '_metadata');
 }
 
@@ -41,25 +41,25 @@ set_include_path( $saved . PATH_SEPARATOR . MMWW_PLUGIN_DIR . '/code' );
 
 add_action( 'init', 'mmww_do_everything' );
 
-function mmww_do_everything () {
+function mmww_do_everything() {
 
-	if ( current_user_can ( 'upload_files') || current_user_can ( 'manage_options')) {
+	if ( current_user_can( 'upload_files' ) || current_user_can( 'manage_options' ) ) {
 		if ( is_admin() ) {
 			load_plugin_textdomain( 'mmww', MMWW_PLUGIN_DIR, 'languages' );
 		}
 	}
-	if ( is_admin() && current_user_can ( 'manage_options' )) {
-		require_once ( 'code/pdfextras.php' );
-		require_once ( 'code/reread.php' );
-		require_once ( 'code/mmww_admin.php' );
+	if ( is_admin() && current_user_can( 'manage_options' ) ) {
+		require_once ('code/pdfextras.php');
+		require_once ('code/reread.php');
+		require_once ('code/mmww_admin.php');
 	}
-	if (current_user_can( 'upload_files' )) {
-		require_once( 'code/mmww_media_upload.php' );
+	if ( current_user_can( 'upload_files' ) ) {
+		require_once('code/mmww_media_upload.php');
 		if ( version_compare( get_bloginfo( 'version' ), '3.5', '<' ) ) {
-			require_once( 'code/audio_shortcode_34_support.php');
+			require_once('code/audio_shortcode_34_support.php');
 		} else {
-			require_once( 'code/audio_shortcode_35_support.php');
-		}		
+			require_once('code/audio_shortcode_35_support.php');
+		}
 	}
 }
 
@@ -68,29 +68,29 @@ function mmww_activate() {
 		deactivate_plugins( basename( __FILE__ ) ); /* fail activation */
 	}
 	/* make sure the options are loaded, but don't overwrite existing version */
-	add_option('mmww_version', MMWW_VERSION_NUM, false, 'no');
+	add_option( 'mmww_version', MMWW_VERSION_NUM, false, 'no' );
 
 	/* check version and upgrade plugin if need be. */
-	if (MMWW_VERSION_NUM != ($opt = get_option('mmww_version', '0.0.0'))) {
+	if ( MMWW_VERSION_NUM != ($opt = get_option( 'mmww_version', '0.0.0' )) ) {
 		/* do update procedure here as needed */
-		update_option('mmww_version', MMWW_VERSION_NUM);
+		update_option( 'mmww_version', MMWW_VERSION_NUM );
 	}
-	
+
 	/* handle options settings defaults */
 	/* translators: default settings for options, loaded on plugin activation */
-	$o = array (
-		'audio_shortcode' => 'media', /* never, custom, attachment, media, none, always -- choose one */
-		'audio_caption' => '{credit} {title} {album} {year} {copyright} {description}',
-		'audio_title' => '{title}',
+	$o = array(
+		'audio_shortcode'      => 'media', /* never, custom, attachment, media, none, always -- choose one */
+		'audio_caption'        => '{credit} {title} {album} {year} {copyright} {description}',
+		'audio_title'          => '{title}',
 		'audio_displaycaption' => '{grouptitle} {title} {album} {credit}',
-		'image_caption' => '{title} {credit} {copyright} {description}',
+		'image_caption'        => '{title} {credit} {copyright} {description}',
 		'image_displaycaption' => '{title}',
-		'image_alt' => '{title} {credit}',
-		'image_title' => '{title}',
-		'application_caption' => '{title} {credit} {copyright} {description}',
-		'application_title' => '{title}',
-		'use_creation_date' => 'no',
-		
+		'image_alt'            => '{title} {credit}',
+		'image_title'          => '{title}',
+		'application_caption'  => '{title} {credit} {copyright} {description}',
+		'application_title'    => '{title}',
+		'use_creation_date'    => 'no',
+
 	);
-	add_option('mmww_options', $o, false, 'no');
+	add_option( 'mmww_options', $o, false, 'no' );
 }

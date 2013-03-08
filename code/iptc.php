@@ -70,4 +70,3 @@ class MMWWIPTCReader {
 		return $meta;
 	}
 }
-?>

@@ -7,4 +7,3 @@ if( !defined( 'WP_UNINSTALL_PLUGIN' ) )
 delete_option( 'mmww_version' );
 
 //remove any additional options and custom tables
-?>
