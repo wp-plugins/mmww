@@ -108,7 +108,7 @@ class MMWWAdmin {
 		$options = get_option( 'mmww_options' );
 		$value   = (empty($options[$item])) ? ' ' : $options[$item];
 		$pattern = '<input type="text" id="mmww_admin_%2$s" name="mmww_options[%2$s]" value="%1$s" size="80" />';
-		$pattern = sprintf( $pattern, $value, $item );
+		$pattern = sprintf( $pattern, htmlspecialchars($value), $item );
 		echo $pattern;
 		echo "\n";
 	}
@@ -126,7 +126,7 @@ class MMWWAdmin {
 			'use_creation_date');
 		$valid = array();
 		foreach ( $codes as $code ) {
-			$valid[$code] = $input[$code];
+			$valid[$code] = htmlspecialchars_decode ($input[$code]);
 		}
 		return $valid;
 	}

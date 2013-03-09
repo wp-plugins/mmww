@@ -309,50 +309,15 @@
 		 * @return description or caption string
 		 */
 		private function make_string( $meta, $item ) {
-			$r       = ''; /* result accumulator */
 			$options = get_option( 'mmww_options' );
 			if ( !array_key_exists( $item, $options ) ) {
 				return NULL;
 			}
 			$t = (empty($options[$item])) ? '' : $options[$item]; /* the template */
-			/* this is a parse loop that handles text {token} text {token} style templates. */
-			while ( !empty ($t) > 0 ) {
-				$p = strpos( $t, '{' );
-				if ( !($p === False) ) { /* start position of next {token} */
-					/* move the stuff before the token to the result string */
-					$r .= substr( $t, 0, $p );
-					$t = substr( $t, $p );
 
-					$p = strpos( $t, '}' ); /* position of next } */
-					if ( !($p === False) ) {
-						/* grab the token from the stream */
-						$p += 1; /* include the ending } */
-						$token = substr( $t, 0, $p );
-						$t     = substr( $t, $p );
-						/* look up the token in the metadata */
-						$token = substr( $token, 1, -1 ); /* take off first and last brace chars */
-						if ( !empty ($meta[$token]) ) {
-							/* found it, use it. */
-							$r .= $meta[$token];
-						} else {
-							/* special case: metadata name in template but not present in the item
-							 * if the next template character is blank, skip it
-							 */
-							if ( ' ' == substr( $t, 0, 1 ) ) {
-								$t = substr( $t, 1 );
-							}
-						}
-					} else { /* if there's no closing brace, use the rest of the template */
-						$r .= $t;
-						$t = '';
-					}
-				} else {
-					/* if there's no remaining opening brace, use the rest of the template */
-					$r .= $t;
-					$t = '';
-				}
-			} /* end while template is ! empty */
-			return $r;
+			require_once ('mmwwtemplate.php');
+			$template = new MMWWTemplate($meta);
+			return $template->fillout($t);
 		}
 
 		/**

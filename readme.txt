@@ -3,7 +3,7 @@ Contributors: olliejones
 Tags: media, audio, video, images, metadata, exif, id3, xmp, png, iptc, workflow, caption, alt
 Requires at least: 3.0.1
 Tested up to: 3.5.1
-Stable tag: 0.9.3
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,9 +85,26 @@ be found in a dialog box named "Properties," "Image Information," or something s
 The settings page lets you specify the templates to use for populating the text fields. For example, you can set the 
 Description template for an image file from a smartphone to 
 
-     {description} {shutter}--{fstop} {latitude}/{longitude} {created_time}
+     ({description} )({shutter}--{fstop} )({latitude}/{longitude} )({created_time})
      
 and you'll see some details about how, where, and when the photo was taken in your Description.
+
+You can use parentheses to delimit optional parts of a metadata template string.
+For example, not all media files contain {copyright} metadata.  If you put this into your metadata template
+string, it will omit the whole copyright clause if there's no {copyright} metadata. Notice that there's a trailing
+space before the closing parenthesis.  This separates this clause (if it appears) from the next one.
+
+      (Copyright &copy; {copyright} )
+
+The parentheses denote the whole clause as optional, and omitted if the metadata mentioned in it is not available.
+
+Similarly, you can create a URL that will display a map, but only if latitude and longitude are available, like this:
+
+     (<A href="https://maps.google.com/?ll={latitude},{longitude}&z=18" target="_blank">\(Map {title}\)</A>)
+
+If you want literal parentheses or curly braces to appear in your metadata, use the backslash character to
+escape them in your template data.
+
 
 = JPEG image files =
 
@@ -179,7 +196,7 @@ in case your particular media workflow needs them.
 
 [EXIF for JPEG files](http://www.exif.org/)
 
-[IPTC Photo Metadata]{http://www.iptc.org/site/Photo_Metadata/)
+[IPTC Photo Metadata](http://www.iptc.org/site/Photo_Metadata/)
 
 == Frequently Asked Questions ==
 
@@ -193,21 +210,14 @@ Please send me the file at olliejones@gmail.com. By sending it to me you give me
 
 = If I upload a TIFF, my Insert Media dialog box stops working correctly.  Why?
 
-That's true. It's a problem with WordPress, not with MMWW: WordPress doesn't handle TIFFs correctly.  
+It's a problem with WordPress, not with MMWW: WordPress doesn't handle TIFFs correctly.
 To fix your Insert Media dialog box, visit the Media Library from your dashboard, and delete all your TIFF attachments.
 
-== Screenshots ==
-
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets 
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png` 
-(or jpg, jpeg, gif).
-2. This is the second screen shot
 
 == Changelog ==
 
 = 0.0.1 =
-* Brandy new
+* Brand new
 
 = 0.0.2 =
 * Some basic stuff is working for pdf, jpg, mp3 files.  The Audio Player button works for WordPress 3.4.2 and earlier.
@@ -226,8 +236,29 @@ Audio Player button working for versions before Wordpress 3.5
  = 0.9.4 =
  
  1. Add support for file ratings set by Windows Explorer and media player.
- 
+
+ = 1.0.0 =
+
+Add a PDF filter to the media manager.
+
+Add the reread-metadata function to the media manager.
+
+Add better metadata string templates. You can use parentheses to delimit optional parts of a metadata template string.
+For example, not all media files contain {copyright} metadata.  If you put this into your metadata template
+string, it will omit the whole copyright clause if there's no {copyright}.
+
+      (Copyright &copy; {copyright} )
+
+The parentheses denote the whole clause as optional, and omitted if the metadata isn't available. Similarly,
+you can create a URL that will display a map, but only if latitude and longitude are available, like this:
+
+     (<A href="https://maps.google.com/?ll={latitude},{longitude}&z=18" target="_blank">Map {title}</A>)
+
+
 == Upgrade Notice ==
+
+= 1.0.0 =
+
 
 = 0.9.3 =
 Add support for the new Media Library popups in WordPress 3.5 and above. Add PNG support.
