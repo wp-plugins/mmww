@@ -52,7 +52,7 @@ order of the date and time they were taken.
 You can specify templates defining what metadata items should be used to create
 each WordPress attachment post's fields: title, caption, alt text, and description.
 
-For audio files, MMWW can automatically create the [audio] shortcode provided by [Jetpack[(http://wordpress.org/extend/plugins/jetpack/). 
+For audio files, MMWW can automatically create the [audio] shortcode provided by [Jetpack](http://wordpress.org/extend/plugins/jetpack/).
 If you don't have Jetpack, you can find that shortcode also in the [Shortpack](http://wordpress.org/extend/plugins/shortpack/) plugin.
 In WordPress 3.4.2 and earlier versions, there's an "Audio Player" button to do this on the media popup. 
 In later versions, choose Link To Media File and the shortcode will be generated for you. (The Settings page
@@ -82,29 +82,29 @@ for people who use screen readers because they cannot see the images, and for de
 Many media editor programs, such as Photoshop, Paint Shop Pro, Acrobat and Audacity have ways of loading metadata into media.  These usually can
 be found in a dialog box named "Properties," "Image Information," or something similar.
 
-The settings page lets you specify the templates to use for populating the text fields. For example, you can set the 
+MMWW's settings page lets you specify the templates to use for populating the text fields. For example, you can set the
 Description template for an image file from a smartphone to 
 
      ({description} )({shutter}--{fstop} )({latitude}/{longitude} )({created_time})
      
 and you'll see some details about how, where, and when the photo was taken in your Description.
 
-You can use parentheses to delimit optional parts of a metadata template string.
-For example, not all media files contain {copyright} metadata.  If you put this into your metadata template
-string, it will omit the whole copyright clause if there's no {copyright} metadata. Notice that there's a trailing
+You can use parentheses to delimit optional parts of a metadata template string. For example, not all media files
+contain {copyright} metadata.  If you put this into your metadata template string, it will omit the whole
+copyright clause if there's no {copyright} metadata. Notice that there's a trailing
 space before the closing parenthesis.  This separates this clause (if it appears) from the next one.
 
       (Copyright &copy; {copyright} )
 
 The parentheses denote the whole clause as optional, and omitted if the metadata mentioned in it is not available.
 
-Similarly, you can create a URL that will display a map, but only if latitude and longitude are available, like this:
+Similarly, you can create a URL that will display a map centered on the spot your photo was taken,
+but only if latitude and longitude are available in the photo's metadata, like this:
 
      (<A href="https://maps.google.com/?ll={latitude},{longitude}&z=18" target="_blank">\(Map {title}\)</A>)
 
 If you want literal parentheses or curly braces to appear in your metadata, use the backslash character to
 escape them in your template data.
-
 
 = JPEG image files =
 
