@@ -48,8 +48,8 @@
 		 */
 		function remove_meaningless_metadata( $meta ) {
 
-			/* eliminate redundant items from the metadata */
-			$tozap = array('aperture', 'shutter_speed', 'warning');
+			/* eliminate redundant items from the metadata  (Jetpack uses 'aperture' and 'shutter_speed')*/
+			$tozap = array('warning');
 			foreach ( $tozap as $zap ) {
 				unset ($meta[$zap]);
 			}

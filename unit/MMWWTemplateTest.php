@@ -40,6 +40,7 @@ class MMWWTemplateTest extends PHPUnit_Framework_TestCase
 			array('(Copyright {copyright})', 'Copyright 2012 Ollie' ),
 			array('(\(Copyright {copyright}\))', '(Copyright 2012 Ollie)' ),
 			array('Not much:( Farkle {farkle})', 'Not much:' ),
+            array('(Copr {copyright} ) extra close paren)', 'Copr 2012 Ollie  extra close paren)' )
 		);
 	}
 

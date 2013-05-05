@@ -3,7 +3,7 @@ Contributors: olliejones
 Tags: media, audio, video, images, metadata, exif, id3, xmp, png, iptc, workflow, caption, alt
 Requires at least: 3.0.1
 Tested up to: 3.5.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -120,16 +120,26 @@ Not every photograph has all these items of metadata, but most have some of them
      {workflowlabel}       A text string like "Discard" or "Keep," set by various image browsers
      {camera}              Camera model
      {shutter}             Shutter speed, such as 1/60
+     {shutter_speed}       Raw shutter speed, such as 60
      {fstop}               Aperture, like f/5.6
-     {flash}               The flash setting, such as "No Flash" or "Fired, Red-eye reduction" 
+     {aperture}            Raw aperture, like 5.60
+     {flash}               The flash setting, such as "No Flash" or "Fired, Red-eye reduction"
+     {focal_length}        The lens's focal length in mm.
+     {focal_length35}      The lens's 35mm film focal length equivalent in mm.
      {lightsource}         The kind of light detected, such as "Daylight" or "Tungsten"
      {meteringmode}        The type of metering the camera used, such as "Spot," "Average," or "Unknown"
      {sensingmethod}       The type of image sensor, such as "One-chip color area sensor."
      {exposuremode}        The exposure mode, such as "Auto" or "Manual"
      {exposureprogram}     The exposure-setting program, such as "Aperture Priority" or "Normal Program."
+     {exposurebias}        The selected exposure bias.
      {brightness}          A number indicating how bright the scene is
+     {scene_capture_type}  The scene capture type. Standard, Landscape, Portrait, Night
+     {sharpness}           Image's sharpness.  Normal, Soft, Hard
      {latitude}            The GPS latitude reading, shown in degrees and decimals.
      {longitude}           The GPS longitude reading, showin in degrees and decimals.
+     {altitude}            The GPS altitude in meters above sea level
+     {direction}           Direction of photograph. 270M means magnetic west, 180T means true south.
+     {subject_distance}    Measure distance to subject via autofocus or other means, meters.
      {created_time}        The timestamp describing the time the photograph was taken.
 
 = PNG image files =
@@ -167,7 +177,7 @@ MP3 Audio files can have lots of metadata, defined by the ID3 standard.  The fir
      {description}         Narrative description.
      {rating}              0 - 5 
 
-These metadata items are in the ID3 standard, but most files don't have them.  MMWW handles them
+These metadata items are in the ID3 standard for MP3 files, but most files don't have them.  MMWW handles them
 in case your particular media workflow needs them.
 
 	 {tempo}
@@ -185,6 +195,19 @@ in case your particular media workflow needs them.
      {mediatype}
      {creditoriginal}
      {copyright}
+
+= A note about timestamps =
+
+MMWW has a setting that allows attachment dates to be set using the timestamp in the media's metadata.
+For example, the upload date for a photo can be set to the moment the photo was taken. That way, photos in
+your Media Library tab will appear in the order they were taken (if that's what you want).
+
+There's a detail to this:  The timestamps in the media files need to be interpreted relative to a time zone to make
+this work correctly.  Consider the example of a photo taken in September in New York City and uploaded in November.  The timestamp
+in the photo is recorded in Eastern Daylight Time, but the current timezone setting is Eastern Standard Time.
+MMWW does the right thing by interpreting the photo's timestamp relative to the timezone chosen on
+WordPress's General Settings page. If you're getting strange times of day in your attachment dates, please check that
+the timezone setting on the General Settings page is correct.
 
 = Metadata Standards Reference =
 
@@ -216,16 +239,6 @@ To fix your Insert Media dialog box, visit the Media Library from your dashboard
 
 == Changelog ==
 
-= 0.0.1 =
-* Brand new
-
-= 0.0.2 =
-* Some basic stuff is working for pdf, jpg, mp3 files.  The Audio Player button works for WordPress 3.4.2 and earlier.
-
-= 0.9.1 =
-
-Audio Player button working for versions before Wordpress 3.5
-
 = 0.9.3 =
 
  1. Metadata extraction working for jpg, png, mp3, pdf files. (There's no metadata in gif files, and tiff files aren't supported by WordPress).
@@ -254,23 +267,27 @@ you can create a URL that will display a map, but only if latitude and longitude
 
      (<A href="https://maps.google.com/?ll={latitude},{longitude}&z=18" target="_blank">Map {title}</A>)
 
+ = 1.0.1 =
+
+Jetpack's carousel plugin uses the {aperture} and {shutter_speed} items for photos, so retain them.
+Document already-existing {iso} and {focal_length} items.
+Add {focal_length35} item for focal length in 35mm sensor size equivalent
+Add {altitude} from GPS information.
+Add {direction} from GPS information. 270M means magnetic west, 180T means true south.
+Add {scene_capture_type}, {sharpness}, {subject_distance} and {exposurebias}
 
 == Upgrade Notice ==
 
-= 1.0.0 =
+ = 1.0.1 =
 
+A minor upgrade; captures more EXIF data from digital photos.
 
-= 0.9.3 =
-Add support for the new Media Library popups in WordPress 3.5 and above. Add PNG support.
-
-If you're putting audio files into posts and pages and you upgrade to WordPress 3.5 or later, you'll find that the Audio Player button has vanished along 
-with the other Link URL buttons. This version of MMWW still allows you to insert a shortcode, 
-by choosing Link To Media File on the attachment settings page. 
-
-= 0.9 =
-First publicly visible version
-
-= 0.5 =
+Jetpack's carousel plugin uses the {aperture} and {shutter_speed} items for photos, so retain them.
+Document already-existing {iso} and {focal_length} items.
+Add {focal_length35} item for focal length in 35mm sensor size equivalent
+Add {altitude} from GPS information.
+Add {direction} from GPS information. 270M means magnetic west, 180T means true south.
+Add {scene_capture_type}, {sharpness}, {subject_distance} and {exposurebias}
 
 == Credits ==
 
