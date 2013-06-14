@@ -4,13 +4,13 @@ Plugin Name: MMWW
 Plugin URI: http://www.plumislandmedia.net/wordpress-plugins/mmww/
 Description: Use the Media Metadata Workflow Wizard to integrate your media metadata workflow with WordPress's Media Library. If you create lots of images, audio clips, or video clips you probably work hard to put metadata (titles, authors, copyrights, track names, dates, and all that) into them. Now you can have that metadata stored into the Media Library automatically when you upload your media files.
 Author: Ollie Jones
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://www.plumislandmedia.net/about/
 Text Domain: mmww
 */
 /** current version number  */
 if (!defined('MMWW_VERSION_NUM')) {
-    define('MMWW_VERSION_NUM', '1.0.1');
+    define('MMWW_VERSION_NUM', '1.0.2');
 }
 /* set up some handy globals */
 if (!defined('MMWW_THEME_DIR')) {
@@ -76,14 +76,14 @@ function mmww_activate()
     /* handle options settings defaults */
     $o = array(
         'audio_shortcode' => 'media', /* never, custom, attachment, media, none, always -- choose one */
-        'audio_caption' => '({credit} )({title} )({album} )({year} (Copyright &copy; {copyright} )({description})',
+        'audio_caption' => '({credit} )({title} )({album} )({year} (Copyright &copy; {copyright} )([{tags}] )({description})',
         'audio_title' => '({title})',
         'audio_displaycaption' => '({grouptitle} )({title} )({album} )({credit})',
-        'image_caption' => '({title} {credit} (Copyright &copy; {copyright} )({description})',
+        'image_caption' => '({title} {credit} (Copyright &copy; {copyright} )([{tags}] )({description})',
         'image_displaycaption' => '({title})',
         'image_alt' => '({title} )({credit})',
         'image_title' => '({title})',
-        'application_caption' => '({title} )({credit} (Copyright &copy; {copyright} )({description})',
+        'application_caption' => '({title} )({credit} (Copyright &copy; {copyright} )([{tags}] )({description})',
         'application_title' => '({title})',
         'use_creation_date' => 'no',
 

@@ -3,7 +3,7 @@ Contributors: olliejones
 Tags: media, audio, video, images, metadata, exif, id3, xmp, png, iptc, workflow, caption, alt
 Requires at least: 3.0.1
 Tested up to: 3.5.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,7 +115,7 @@ Not every photograph has all these items of metadata, but most have some of them
      {credit}              Author.
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
-     {tags}                One or more tags, separated by semicolons.
+     {tags}                One or more keyword tags, separated by semicolons.
      {rating}              0 - 5, set by various image browsers
      {workflowlabel}       A text string like "Discard" or "Keep," set by various image browsers
      {camera}              Camera model
@@ -161,9 +161,10 @@ these are the title and credit.
      {credit}              Author.
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
-     {tags}                One or more tags, separated by semicolons.
+     {tags}                One or more keyword tags, separated by semicolons.
      {rating}              0 - 5 
-     {created_time}        The timestamp describing the time the PNG was made.
+     {created_time}        The timestamp describing the time the PDF was made.
+     {software}            Program used to create PDF.
 
 = Audio =
 
@@ -276,18 +277,16 @@ Add {altitude} from GPS information.
 Add {direction} from GPS information. 270M means magnetic west, 180T means true south.
 Add {scene_capture_type}, {sharpness}, {subject_distance} and {exposurebias}
 
+ = 1.0.2 =
+
+A minor upgrade; Captures metadata correctly from PDFs containing multiple XMP chunks, thanks to Kevin Fraser
+for finding this bug.
+
 == Upgrade Notice ==
 
- = 1.0.1 =
+ = 1.0.2 =
 
-A minor upgrade; captures more EXIF data from digital photos.
-
-Jetpack's carousel plugin uses the {aperture} and {shutter_speed} items for photos, so retain them.
-Document already-existing {iso} and {focal_length} items.
-Add {focal_length35} item for focal length in 35mm sensor size equivalent
-Add {altitude} from GPS information.
-Add {direction} from GPS information. 270M means magnetic west, 180T means true south.
-Add {scene_capture_type}, {sharpness}, {subject_distance} and {exposurebias}
+A minor upgrade; Extracts metadata correctly from PDFs containing multiple XMP chunks.
 
 == Credits ==
 
