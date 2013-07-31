@@ -1,9 +1,9 @@
 === MMWW ===
 Contributors: olliejones
-Tags: media, audio, video, images, metadata, exif, id3, xmp, png, iptc, workflow, caption, alt
+Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt
 Requires at least: 3.0.1
 Tested up to: 3.5.1
-Stable tag: 0.9.3
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,7 +52,7 @@ order of the date and time they were taken.
 You can specify templates defining what metadata items should be used to create
 each WordPress attachment post's fields: title, caption, alt text, and description.
 
-For audio files, MMWW can automatically create the [audio] shortcode provided by [Jetpack[(http://wordpress.org/extend/plugins/jetpack/). 
+For audio files, MMWW can automatically create the [audio] shortcode provided by [Jetpack](http://wordpress.org/extend/plugins/jetpack/).
 If you don't have Jetpack, you can find that shortcode also in the [Shortpack](http://wordpress.org/extend/plugins/shortpack/) plugin.
 In WordPress 3.4.2 and earlier versions, there's an "Audio Player" button to do this on the media popup. 
 In later versions, choose Link To Media File and the shortcode will be generated for you. (The Settings page
@@ -82,12 +82,29 @@ for people who use screen readers because they cannot see the images, and for de
 Many media editor programs, such as Photoshop, Paint Shop Pro, Acrobat and Audacity have ways of loading metadata into media.  These usually can
 be found in a dialog box named "Properties," "Image Information," or something similar.
 
-The settings page lets you specify the templates to use for populating the text fields. For example, you can set the 
+MMWW's settings page lets you specify the templates to use for populating the text fields. For example, you can set the
 Description template for an image file from a smartphone to 
 
-     {description} {shutter}--{fstop} {latitude}/{longitude} {created_time}
+     ({description} )({shutter}--{fstop} )({latitude}/{longitude} )({created_time})
      
 and you'll see some details about how, where, and when the photo was taken in your Description.
+
+You can use parentheses to delimit optional parts of a metadata template string. For example, not all media files
+contain {copyright} metadata.  If you put this into your metadata template string, it will omit the whole
+copyright clause if there's no {copyright} metadata. Notice that there's a trailing
+space before the closing parenthesis.  This separates this clause (if it appears) from the next one.
+
+      (Copyright &copy; {copyright} )
+
+The parentheses denote the whole clause as optional, and omitted if the metadata mentioned in it is not available.
+
+Similarly, you can create a URL that will display a map centered on the spot your photo was taken,
+but only if latitude and longitude are available in the photo's metadata, like this:
+
+     (<A href="https://maps.google.com/?ll={latitude},{longitude}&z=18" target="_blank">\(Map {title}\)</A>)
+
+If you want literal parentheses or curly braces to appear in your metadata, use the backslash character to
+escape them in your template data.
 
 = JPEG image files =
 
@@ -95,24 +112,35 @@ JPEG photo files have lots of possible metadata.
 Not every photograph has all these items of metadata, but most have some of them.
 
      {title}               Title of the file.
+     {filename}            Filename of the file. e.g. "DSC_5007" (without .jpg)
      {credit}              Author.
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
-     {tags}                One or more tags, separated by semicolons.
+     {tags}                One or more keyword tags, separated by semicolons.
      {rating}              0 - 5, set by various image browsers
      {workflowlabel}       A text string like "Discard" or "Keep," set by various image browsers
      {camera}              Camera model
      {shutter}             Shutter speed, such as 1/60
+     {shutter_speed}       Raw shutter speed, such as 60
      {fstop}               Aperture, like f/5.6
-     {flash}               The flash setting, such as "No Flash" or "Fired, Red-eye reduction" 
+     {aperture}            Raw aperture, like 5.60
+     {flash}               The flash setting, such as "No Flash" or "Fired, Red-eye reduction"
+     {focal_length}        The lens's focal length in mm.
+     {focal_length35}      The lens's 35mm film focal length equivalent in mm.
      {lightsource}         The kind of light detected, such as "Daylight" or "Tungsten"
      {meteringmode}        The type of metering the camera used, such as "Spot," "Average," or "Unknown"
      {sensingmethod}       The type of image sensor, such as "One-chip color area sensor."
      {exposuremode}        The exposure mode, such as "Auto" or "Manual"
      {exposureprogram}     The exposure-setting program, such as "Aperture Priority" or "Normal Program."
+     {exposurebias}        The selected exposure bias.
      {brightness}          A number indicating how bright the scene is
+     {scene_capture_type}  The scene capture type. Standard, Landscape, Portrait, Night
+     {sharpness}           Image's sharpness.  Normal, Soft, Hard
      {latitude}            The GPS latitude reading, shown in degrees and decimals.
      {longitude}           The GPS longitude reading, showin in degrees and decimals.
+     {altitude}            The GPS altitude in meters above sea level
+     {direction}           Direction of photograph. 270M means magnetic west, 180T means true south.
+     {subject_distance}    Measure distance to subject via autofocus or other means, meters.
      {created_time}        The timestamp describing the time the photograph was taken.
 
 = PNG image files =
@@ -124,6 +152,7 @@ PNG image files have a few items of metadata, if the author bothered to set them
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
      {created_time}        The timestamp describing the time the PNG was made.
+     {filename}            Filename of the file. e.g. "icon" (without .png)
 
 = PDF =
 
@@ -134,9 +163,12 @@ these are the title and credit.
      {credit}              Author.
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
-     {tags}                One or more tags, separated by semicolons.
+     {tags}                One or more keyword tags, separated by semicolons.
      {rating}              0 - 5 
-     {created_time}        The timestamp describing the time the PNG was made.
+     {created_time}        The timestamp describing the time the PDF was made.
+     {software}            Program used to create PDF.
+     {filename}            Filename of the file. e.g. "scan1234" (without .pdf)
+
 
 = Audio =
 
@@ -148,9 +180,11 @@ MP3 Audio files can have lots of metadata, defined by the ID3 standard.  The fir
      {year}                Year of recording
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
-     {rating}              0 - 5 
+     {rating}              0 - 5
+     {filename}            Filename of the file. e.g. "TRACK_003" (without .mp3)
 
-These metadata items are in the ID3 standard, but most files don't have them.  MMWW handles them
+
+These metadata items are in the ID3 standard for MP3 files, but most files don't have them.  MMWW handles them
 in case your particular media workflow needs them.
 
 	 {tempo}
@@ -169,6 +203,19 @@ in case your particular media workflow needs them.
      {creditoriginal}
      {copyright}
 
+= A note about timestamps =
+
+MMWW has a setting that allows attachment dates to be set using the timestamp in the media's metadata.
+For example, the upload date for a photo can be set to the moment the photo was taken. That way, photos in
+your Media Library tab will appear in the order they were taken (if that's what you want).
+
+There's a detail to this:  The timestamps in the media files need to be interpreted relative to a time zone to make
+this work correctly.  Consider the example of a photo taken in September in New York City and uploaded in November.  The timestamp
+in the photo is recorded in Eastern Daylight Time, but the current timezone setting is Eastern Standard Time.
+MMWW does the right thing by interpreting the photo's timestamp relative to the timezone chosen on
+WordPress's General Settings page. If you're getting strange times of day in your attachment dates, please check that
+the timezone setting on the General Settings page is correct.
+
 = Metadata Standards Reference =
 
 [Adobe XMP](http://www.adobe.com/products/xmp/)
@@ -179,7 +226,7 @@ in case your particular media workflow needs them.
 
 [EXIF for JPEG files](http://www.exif.org/)
 
-[IPTC Photo Metadata]{http://www.iptc.org/site/Photo_Metadata/)
+[IPTC Photo Metadata](http://www.iptc.org/site/Photo_Metadata/)
 
 == Frequently Asked Questions ==
 
@@ -193,28 +240,11 @@ Please send me the file at olliejones@gmail.com. By sending it to me you give me
 
 = If I upload a TIFF, my Insert Media dialog box stops working correctly.  Why?
 
-That's true. It's a problem with WordPress, not with MMWW: WordPress doesn't handle TIFFs correctly.  
+It's a problem with WordPress, not with MMWW: WordPress doesn't handle TIFFs correctly.
 To fix your Insert Media dialog box, visit the Media Library from your dashboard, and delete all your TIFF attachments.
 
-== Screenshots ==
-
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets 
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png` 
-(or jpg, jpeg, gif).
-2. This is the second screen shot
 
 == Changelog ==
-
-= 0.0.1 =
-* Brandy new
-
-= 0.0.2 =
-* Some basic stuff is working for pdf, jpg, mp3 files.  The Audio Player button works for WordPress 3.4.2 and earlier.
-
-= 0.9.1 =
-
-Audio Player button working for versions before Wordpress 3.5
 
 = 0.9.3 =
 
@@ -226,22 +256,55 @@ Audio Player button working for versions before Wordpress 3.5
  = 0.9.4 =
  
  1. Add support for file ratings set by Windows Explorer and media player.
- 
+
+ = 1.0.0 =
+
+Add a PDF filter to the media manager.
+
+Add the reread-metadata function to the media manager.
+
+Add better metadata string templates. You can use parentheses to delimit optional parts of a metadata template string.
+For example, not all media files contain {copyright} metadata.  If you put this into your metadata template
+string, it will omit the whole copyright clause if there's no {copyright}.
+
+      (Copyright &copy; {copyright} )
+
+The parentheses denote the whole clause as optional, and omitted if the metadata isn't available. Similarly,
+you can create a URL that will display a map, but only if latitude and longitude are available, like this:
+
+     (<A href="https://maps.google.com/?ll={latitude},{longitude}&z=18" target="_blank">Map {title}</A>)
+
+ = 1.0.1 =
+
+Jetpack's carousel plugin uses the {aperture} and {shutter_speed} items for photos, so retain them.
+Document already-existing {iso} and {focal_length} items.
+Add {focal_length35} item for focal length in 35mm sensor size equivalent
+Add {altitude} from GPS information.
+Add {direction} from GPS information. 270M means magnetic west, 180T means true south.
+Add {scene_capture_type}, {sharpness}, {subject_distance} and {exposurebias}
+
+ = 1.0.2 =
+
+A minor upgrade; Captures metadata correctly from PDFs containing multiple XMP chunks, thanks to Kevin Fraser
+for finding this bug.
+
+ = 1.0.3 =
+
+A minor upgrade; Add a {filename} tag for workflows where the filename is needed in the post.
+                 Handle some non-ASCII trouble in titles, content, and tags.
+                 Thanks to Tony van der Voort for reporting these problems.
+
 == Upgrade Notice ==
 
-= 0.9.3 =
-Add support for the new Media Library popups in WordPress 3.5 and above. Add PNG support.
+ = 1.0.3 =
 
-If you're putting audio files into posts and pages and you upgrade to WordPress 3.5 or later, you'll find that the Audio Player button has vanished along 
-with the other Link URL buttons. This version of MMWW still allows you to insert a shortcode, 
-by choosing Link To Media File on the attachment settings page. 
-
-= 0.9 =
-First publicly visible version
-
-= 0.5 =
+A minor upgrade; Add a {filename} tag for workflows where the filename is needed in the post.
+                 Handle some non-ASCII trouble in titles, content, and tags.
 
 == Credits ==
+
+The stuff the US NSA is collecting isn't really metadata: it's call detail records.
+This stuff is metadata. Metadata can be poetry.
 
 This plugin incorporates the Zend Media Framework by Sven Vollbehr and Ryan Butterfield
 which they generously made available under the BSD license. It comes in handy for retrieving
