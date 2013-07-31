@@ -1,9 +1,9 @@
 === MMWW ===
 Contributors: olliejones
-Tags: media, audio, video, images, metadata, exif, id3, xmp, png, iptc, workflow, caption, alt
+Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt
 Requires at least: 3.0.1
 Tested up to: 3.5.1
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -112,6 +112,7 @@ JPEG photo files have lots of possible metadata.
 Not every photograph has all these items of metadata, but most have some of them.
 
      {title}               Title of the file.
+     {filename}            Filename of the file. e.g. "DSC_5007" (without .jpg)
      {credit}              Author.
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
@@ -151,6 +152,7 @@ PNG image files have a few items of metadata, if the author bothered to set them
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
      {created_time}        The timestamp describing the time the PNG was made.
+     {filename}            Filename of the file. e.g. "icon" (without .png)
 
 = PDF =
 
@@ -165,6 +167,8 @@ these are the title and credit.
      {rating}              0 - 5 
      {created_time}        The timestamp describing the time the PDF was made.
      {software}            Program used to create PDF.
+     {filename}            Filename of the file. e.g. "scan1234" (without .pdf)
+
 
 = Audio =
 
@@ -176,7 +180,9 @@ MP3 Audio files can have lots of metadata, defined by the ID3 standard.  The fir
      {year}                Year of recording
      {copyright}           Copyright notice if any is included.
      {description}         Narrative description.
-     {rating}              0 - 5 
+     {rating}              0 - 5
+     {filename}            Filename of the file. e.g. "TRACK_003" (without .mp3)
+
 
 These metadata items are in the ID3 standard for MP3 files, but most files don't have them.  MMWW handles them
 in case your particular media workflow needs them.
@@ -282,13 +288,23 @@ Add {scene_capture_type}, {sharpness}, {subject_distance} and {exposurebias}
 A minor upgrade; Captures metadata correctly from PDFs containing multiple XMP chunks, thanks to Kevin Fraser
 for finding this bug.
 
+ = 1.0.3 =
+
+A minor upgrade; Add a {filename} tag for workflows where the filename is needed in the post.
+                 Handle some non-ASCII trouble in titles, content, and tags.
+                 Thanks to Tony van der Voort for reporting these problems.
+
 == Upgrade Notice ==
 
- = 1.0.2 =
+ = 1.0.3 =
 
-A minor upgrade; Extracts metadata correctly from PDFs containing multiple XMP chunks.
+A minor upgrade; Add a {filename} tag for workflows where the filename is needed in the post.
+                 Handle some non-ASCII trouble in titles, content, and tags.
 
 == Credits ==
+
+The stuff the US NSA is collecting isn't really metadata: it's call detail records.
+This stuff is metadata. Metadata can be poetry.
 
 This plugin incorporates the Zend Media Framework by Sven Vollbehr and Ryan Butterfield
 which they generously made available under the BSD license. It comes in handy for retrieving

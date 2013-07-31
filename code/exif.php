@@ -59,13 +59,17 @@ class MMWWEXIFReader
                 /* deal with the bogus junk that MS's property editor puts into EXIF  */
                 if (!empty($exif['ImageDescription'])) {
                     // Assume the title is stored in ImageDescription
-                    $meta['title'] = utf8_encode(substr(trim($exif['ImageDescription']), 0, 80));
+                    $tempString = substr(trim($exif['ImageDescription']), 0, 80);
+                    $meta['title'] = utf8_encode($tempString);
                     if (!empty($exif['COMPUTED']['UserComment']) && trim($exif['COMPUTED']['UserComment']) != $meta['title']) {
-                        $meta['description'] = utf8_encode(trim($exif['COMPUTED']['UserComment']));
+                        $tempString = trim($exif['COMPUTED']['UserComment']);
+                        $meta['description'] = utf8_encode($tempString);
                     }
-                    $meta['description'] = utf8_encode(trim($exif['ImageDescription']));
+                    $tempString = trim($exif['ImageDescription']);
+                    $meta['description'] = utf8_encode($tempString);
                 } elseif (!empty($exif['Comments'])) {
-                    $meta['description'] = utf8_encode(trim($exif['Comments']));
+                    $tempString = trim($exif['Comments']);
+                    $meta['description'] = utf8_encode($tempString);
                     $meta['title'] = '';
                 }
             }

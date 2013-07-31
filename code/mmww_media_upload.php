@@ -217,6 +217,9 @@
 			$filetype = $ft['type'];
 			$filetype = $this->getfiletype( $filetype );
 
+            /* figure out the file's leafname */
+
+
 			/* create a media-specific ordered list of metadata readers
 			 * avoid doing the require operations unless
 			 * the code for the particular data type
@@ -252,6 +255,7 @@
 			/* merge up the metadata  -- later merges overwrite earlier ones*/
 			$meta_accum              = array();
 			$meta_accum['mmww_type'] = $filetype;
+            $meta_accum['filename'] = pathinfo( $file, PATHINFO_FILENAME );
 			foreach ( $readers as $reader ) {
 				if ( method_exists( $reader, 'get_audio_metadata' ) ) {
 					$newmeta    = $reader->get_audio_metadata();

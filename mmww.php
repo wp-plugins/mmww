@@ -10,7 +10,7 @@ Text Domain: mmww
 */
 /** current version number  */
 if (!defined('MMWW_VERSION_NUM')) {
-    define('MMWW_VERSION_NUM', '1.0.2');
+    define('MMWW_VERSION_NUM', '1.0.3');
 }
 /* set up some handy globals */
 if (!defined('MMWW_THEME_DIR')) {
@@ -75,7 +75,7 @@ function mmww_activate()
 
     /* handle options settings defaults */
     $o = array(
-        'audio_shortcode' => 'media', /* never, custom, attachment, media, none, always -- choose one */
+        'audio_shortcode' => 'media', /* never, media  -- choose one */
         'audio_caption' => '({credit} )({title} )({album} )({year} (Copyright &copy; {copyright} )([{tags}] )({description})',
         'audio_title' => '({title})',
         'audio_displaycaption' => '({grouptitle} )({title} )({album} )({credit})',
