@@ -83,7 +83,9 @@ class  MMWWID3Reader {
 		}
 		return $dec;
 	}
-	function get_metadata () {
+
+
+    public function get_metadata () {
 		$id3 = $this->id3;
 		$taglist = $this->metadata_list;
 		$meta = array();

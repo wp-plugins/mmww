@@ -51,6 +51,7 @@ class MMWWIPTCReader {
         }
     }
 
+
     /**
 	 * fetch metadata from an APP13 segment in an iptc data item in a file.
 	 * @return array of metadata strings, or an empty array if no app13 data was found.

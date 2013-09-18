@@ -1,13 +1,13 @@
 === MMWW ===
 Contributors: olliejones
-Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt
+Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt, tags, taxonomy
 Requires at least: 3.0.1
-Tested up to: 3.5.1
+Tested up to: 3.6.1
 Stable tag: 1.0.3
-License: GPLv2 or later
+License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Integrate your media metadata workflow with WordPress's Media Library 
+Media Metadata Workflow Wizard: Integrate your media metadata workflow with WordPress's Media Library
 
 == To Do ==
 
@@ -31,23 +31,22 @@ Support TIFF files. (Please let the author know if you need TIFF support.)
 
 If you create lots of images, graphics, audio clips, or video clips 
 you probably go to some trouble to put metadata (titles, 
-copyrights, track names, dates, and all that) into them.
+copyrights, track names, dates, and all that) into them. You may also
+put tags and ratings (one to five stars) on your media files.
 
 JPEG image files have EXIF metadata. MP3 audio clips have ID3 metadata.
 PNG files have their own kind of metadata. Adobe is pushing an interoperable 
-standard called XMP to hold metadata as well.  Video files also have metadata.  
-
+standard called XMP to hold metadata as well.  Video files also have metadata.
 If you use a production tool like Acrobat, Adobe Bridge or Audacity, you probably
 put this kind of metadata into your files.  And then you probably rekey it when 
 you put the files into your WordPress site.  
 
-This plugin will get you out of doing that. Now you can have that 
-metadata transferred into the Media Library automatically when you 
-upload your media.
+This Media Metadata Workflow Wizard plugin will get you out of doing that. Now you can have that
+metadata transferred into the Media Library automatically when you upload your media.
 
 You can choose to have the creation date in your media file used as the "Uploaded" date
 in WordPress.  So, for example, your photos can be ordered in the media library in
-order of the date and time they were taken.
+order of the date and time they were taken, and your pdfs in the order they were scanned.
 
 You can specify templates defining what metadata items should be used to create
 each WordPress attachment post's fields: title, caption, alt text, and description.
@@ -55,12 +54,20 @@ each WordPress attachment post's fields: title, caption, alt text, and descripti
 For audio files, MMWW can automatically create the [audio] shortcode provided by [Jetpack](http://wordpress.org/extend/plugins/jetpack/).
 If you don't have Jetpack, you can find that shortcode also in the [Shortpack](http://wordpress.org/extend/plugins/shortpack/) plugin.
 In WordPress 3.4.2 and earlier versions, there's an "Audio Player" button to do this on the media popup. 
-In later versions, choose Link To Media File and the shortcode will be generated for you. (The Settings page
-lets you turn this behavior off.)
+In later versions, choose Link To Media File and the shortcode will be generated for you. WordPress 3.6 and later
+has an integrated audio player, so you may not need this feature. The Settings page
+lets you turn this behavior off.
+
+If you use the [Media Tags][http://wordpress.org/plugins/media-tags/] plugin together with this one,
+you'll be able to handle metadata tags as a taxonomy. You can also use metadata ratings (one to five stars) as a
+taxonomy.
+
 
 == Installation ==
 
 Install and activate this plugin in the usual way.
+
+
 
 == Metadata templates ==
 

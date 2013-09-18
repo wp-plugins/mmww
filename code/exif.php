@@ -41,7 +41,6 @@ class MMWWEXIFReader
         return round($result, 6);
     }
 
-
     public function get_metadata()
     {
 

@@ -195,6 +195,7 @@
 		 * filter to extend the stuff in wp_admin/includes/image.php
 		 *        and store the metadata in the right place.
 		 *        This function handles xmp, iptc, exif, png, and id3v2
+		 *        This function handles xmp, iptc, exif, png, and id3v2
 		 *        and so copes pretty well with pdf, mp3, jpg, png etc.
 		 * @param array $meta  associative array containing pre-loaded metadata
 		 * @param string $file file name
@@ -254,6 +255,7 @@
 
 			/* merge up the metadata  -- later merges overwrite earlier ones*/
 			$meta_accum              = array();
+            $tag_accum               = array();
 			$meta_accum['mmww_type'] = $filetype;
             $meta_accum['filename'] = pathinfo( $file, PATHINFO_FILENAME );
 			foreach ( $readers as $reader ) {
@@ -263,12 +265,21 @@
 				}
 				$newmeta    = $reader->get_metadata();
 				$meta_accum = array_merge( $meta_accum, $newmeta );
+
+                if (method_exists($reader, 'get_tags')) {
+                    $newtag = $reader->get_tags();
+                    $tag_accum = array_merge ($tag_accum, $newtag);
+                }
 			}
 
 			$meta = array_merge( $meta, $meta_accum );
 
+            /* handle tags */
+            //TODO  put in the tag array to the resulting meta array.
+
 			return $meta;
 		}
+
 
 		/**
 		 * filter to use the metadata to construct title and caption

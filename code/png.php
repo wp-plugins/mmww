@@ -87,7 +87,7 @@ class MMWWPNGReader
 		return $chunks;
 	}
 
-	public function get_metadata () {
+    public function get_metadata () {
 		$meta = array();
 		if ($this->_fp == -1) {
 			return $meta;

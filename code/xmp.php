@@ -13,6 +13,9 @@ class MMWWXMPReader {
 		unset ($this->xmps);
 	}
 
+    private $xmp_tag_list = array (
+        array('tags', '//dc:subject/rdf:Bag/rdf:li'),
+    );
 
     private $xmp_metadata_list = array(
         array('rating', '//xmp:Rating'),
@@ -141,9 +144,10 @@ class MMWWXMPReader {
 	 * get a metadata array from an xmp stanza based on a list of itesm
 	 * @param string xmps array of xmp stanzas, empty array if none.
 	 * @param metadata list $list
+     * @param separator a character for separating list items. default=semicolon.
 	 * @return multitype:string
 	 */
-	private function get_list($xmps, $list) {
+	private function get_list($xmps, $list, $separator=';') {
 		$result = array();
         foreach ($xmps as $xmp) {
             if (is_object($xmp)) {
@@ -157,7 +161,7 @@ class MMWWXMPReader {
                             $gather[] = $s;
                         }
                         if (!empty($gather)) {
-                            $out = implode(';', $gather);
+                            $out = implode($separator, $gather);
                             if (is_string($out) && strlen($out) > 0) {
                                 $result[$tag] = $out;
                             }
@@ -189,4 +193,8 @@ class MMWWXMPReader {
 		return $this->get_list($this->xmps, $this->audio_metadata_list);
 	}
 
+    public function get_tags() {
+        $result = $this->get_list($this->xmps, $this->xmp_tag_list, "\t");
+        return explode("\t", $result);
+    }
 }

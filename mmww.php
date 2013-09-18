@@ -86,6 +86,11 @@ function mmww_activate()
         'application_caption' => '({title} )({credit} (Copyright &copy; {copyright} )([{tags}] )({description})',
         'application_title' => '({title})',
         'use_creation_date' => 'no',
+        'populate_tags' => 'yes',
+        'populate_ratings' => 'yes',
+        'tag_taxonomy_name' => 'media-tags',
+        'rating_taxonomy_name' => 'media-ratings',
+
 
     );
     add_option('mmww_options', $o, false, 'no');
