@@ -2,8 +2,8 @@
 Contributors: olliejones
 Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt, tags, taxonomy
 Requires at least: 3.0.1
-Tested up to: 3.6.1
-Stable tag: 1.0.3
+Tested up to: 3.8
+Stable tag: 1.0.4
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -149,6 +149,47 @@ Not every photograph has all these items of metadata, but most have some of them
      {direction}           Direction of photograph. 270M means magnetic west, 180T means true south.
      {subject_distance}    Measure distance to subject via autofocus or other means, meters.
      {created_time}        The timestamp describing the time the photograph was taken.
+
+= IPTC metadata in JPEG image files =
+
+The International Press Telecommunications Council has defined many items of metadata
+to go in photo files.  This metadata helps photojournalists and publications
+do business efficiently. Various tools, such as Adobe Bridge, allow this metadata
+to be inserted.  MMWW can retrieve it, with these tags
+
+      {iptc:creator}              The creator's name.
+      {iptc:creator:jobtitle}     The creator's job title.
+      {iptc:creator:address}      The creator's address.
+      {iptc:creator:city}         The creator's city.
+      {iptc:creator:state}        The creator's state or province.
+      {iptc:creator:postcode}     The creator's post / zip code.
+      {iptc:creator:country}      The creator's country.
+      {iptc:creator:phone}        The creator's phone(s).
+      {iptc:creator:email}        The creator's email(s).
+      {iptc:creator:website}      The creator's web site(s).
+      {iptc:headline}             Headline.
+      {iptc:description}          Description.
+      {iptc:keywords}             Keywords, separated with comma or semicolon.
+      {iptc:iptcsubjectcode}      IPTC subject code.
+      {iptc:descriptionwriter}    Author of the description.
+      {iptc:datecreated}          Creation date.
+      {iptc:genre}                Intellectual genre.
+      {iptc:scenecode}            IPTC scene code.
+      {iptc:datecreated}          Creation date.
+      {iptc:sublocation}          Location within city.
+      {iptc:city}                 City.
+      {iptc:state}                State/Province.
+      {iptc:country}              Country.
+      {iptc:iscocountrycode}      Country code per ISO 3166.
+      {iptc:title}                Title.
+      {iptc:jobidentifier}        Job Identifier.
+      {iptc:instructions}         Instructions.
+      {iptc:creditline}           Credit line.
+      {iptc:source}               Source.
+      {iptc:copyright}            Copyright Notice.
+      {iptc:copyrightstatus}      Copyright Status.
+      {iptc:rightsusageterms}     Terms of usage.
+
 
 = PNG image files =
 
@@ -301,17 +342,19 @@ A minor upgrade; Add a {filename} tag for workflows where the filename is needed
                  Handle some non-ASCII trouble in titles, content, and tags.
                  Thanks to Tony van der Voort for reporting these problems.
 
+ = 1.0.4 =
+
+Upgrade to WP 3.8.  Add more complete support for IPTC metadata, using {iptc:name} tags.
+
 == Upgrade Notice ==
 
- = 1.0.3 =
+ = 1.0.4 =
 
-A minor upgrade; Add a {filename} tag for workflows where the filename is needed in the post.
-                 Handle some non-ASCII trouble in titles, content, and tags.
+Upgrade to WP 3.8.  Add more complete support for IPTC metadata.
 
 == Credits ==
 
-The stuff the US NSA is collecting isn't really metadata: it's call detail records.
-This stuff is metadata. Metadata can be poetry.
+The stuff the US NSA is collecting isn't really metadata: it's call detail records. This stuff is metadata. Metadata can be poetry.
 
 This plugin incorporates the Zend Media Framework by Sven Vollbehr and Ryan Butterfield
 which they generously made available under the BSD license. It comes in handy for retrieving
@@ -320,5 +363,3 @@ See the LICENSE.txt file in this distribution.
 
 Copyright (c) 2005-2009 Zend Technologies USA Inc. (http://www.zend.com)
 Thanks, Sven and Ryan!
-
-

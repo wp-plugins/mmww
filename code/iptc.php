@@ -4,7 +4,50 @@ class MMWWIPTCReader {
 
 	private $iptc;
 
-	function __construct($file) {
+    /* table of iptc data items and indexes */
+
+    /* the following data items show up in xmp, so see xmp.php
+      {iptc:creator:address}      The creator's address.
+      {iptc:creator:city}         The creator's city.
+      {iptc:creator:state}        The creator's state or province.
+      {iptc:creator:postcode}   The creator's post / zip code.
+      {iptc:creator:country}      The creator's country.
+      {iptc:creator:phone}        The creator's phone(s).
+      {iptc:creator:email}        The creator's email(s).
+      {iptc:creator:website}      The creator's web site(s).
+      {iptc:iptcsubjectcode}      IPTC subject code.
+      {iptc:genre}                Intellectual genre.
+      {iptc:scenecode}            IPTC scene code.
+      {iptc:copyrightstatus}      Copyright Status.
+      {iptc:rightsusageterms}     Terms of usage.
+        */
+
+
+    /* 2#055 date, 2#056 hhmmss time with +xxxx */
+    /* {iptc:datecreated}          Creation date. */
+
+    private $taglist = array(
+        array('2#080', 'iptc:creator'),          /* The creator's name. */
+        array('2#085', 'iptc:creator:jobtitle'), /* The creator's job title. */
+        array('2#105', 'iptc:headline'),         /* Headline. */
+        array('2#120', 'iptc:description'),      /* Description. */
+        array('2#112', 'iptc:descriptionwriter'),/* Author of the description. */
+        array('2#025', 'iptc:keywords'),         /* Keywords, separated with comma or semicolon. */
+        array('2#092', 'iptc:sublocation'),      /* Location within city. */
+        array('2#090', 'iptc:city'),             /* City. */
+        array('2#095', 'iptc:state'),            /* State/Province. */
+        array('2#101', 'iptc:country'),          /* Country. */
+        array('2#100', 'iptc:iscocountrycode'),  /* Country code per ISO 3166. */
+        array('2#005', 'iptc:title'),            /* Title. */
+        array('2#103', 'iptc:jobidentifier'),    /* Job Identifier. */
+        array('2#040', 'iptc:instructions'),     /* Instructions. */
+        array('2#110', 'iptc:creditline'),       /* Credit line. */
+        array('2#115', 'iptc:source'),           /* Source. */
+        array('2#116', 'iptc:copyright'),        /* Copyright Notice. */
+    );
+
+
+    function __construct($file) {
 		$this->iptc = false;
 		// fetch additional info from iptc if available
 		if ( is_callable( 'iptcparse' ) ) {
@@ -63,6 +106,18 @@ class MMWWIPTCReader {
 
 		if (!(False === $this->iptc)) {
 			$iptc = $this->iptc;
+
+            /* do the list of IPTC items */
+            foreach ($this->taglist as $pair) {
+                $tag = $pair[1];
+                $index = $pair[0];
+                if ( ! empty( $iptc[$index][0] ) ) {
+                    $tempString = $iptc[$index][0];
+                    $meta[$tag] = $this->make_utf8($tempString);
+                }
+            }
+
+            /* do the specific items */
 			// headline, "A brief synopsis of the caption."
 			if ( ! empty( $iptc['2#105'][0] ) ) {
                 $tempString = trim( $iptc['2#105'][0] );

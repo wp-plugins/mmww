@@ -51,7 +51,7 @@ class MMWWAdmin
      */
     function image_text()
     {
-        echo '<p>' . __('These settings control the insertion of EXIF and other metadata from uploaded image files (JPG, PNG) into WordPress attachment data.', 'mmww') . '</p>';
+        echo '<p>' . __('These settings control the insertion of EXIF, IPTC, and other metadata from uploaded image files (JPG, PNG) into WordPress attachment data.', 'mmww') . '</p>';
     }
 
     /**

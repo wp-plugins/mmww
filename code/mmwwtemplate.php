@@ -106,8 +106,8 @@ class MMWWLex {
 					$this->d = $d;
 					return array('type' => $r, 'value' => $r);
 				}
-			} elseif ( $len > 2 && 1 == preg_match( '/^({[a-z][-_a-z0-9]+})(.*)$/', $d, $matches ) ) {
-				/* tokens in {curly-braces} */
+			} elseif ( $len > 2 && 1 == preg_match( '/^({[a-z][-_a-z0-9:]+})(.*)$/', $d, $matches ) ) {
+				/* tokens, including colons, in {curly-braces} */
 				if ( strlen( $r ) > 0 ) {
 					$this->d = $d;
 					return array('type' => 'text', 'value' => $r);

@@ -36,6 +36,21 @@ class MMWWXMPReader {
         array('software', '//pdf:Producer'),
         array('iso8601timestamp', '//xmp:CreateDate'),
         array('iso8601timestamp', '//xmp:ModifyDate'),
+        /* get some IPTC xmp extension data if furnished */
+        array('iptc:creator:address','//@Iptc4xmpCore:CiAdrExtadr'),
+        array('iptc:creator:city','//@Iptc4xmpCore:CiAdrCity'),
+        array('iptc:creator:state','//@Iptc4xmpCore:CiAdrRegion'),
+        array('iptc:creator:postcode','//@Iptc4xmpCore:CiAdrPcode'),
+        array('iptc:creator:country','//@Iptc4xmpCore:CiAdrCtry'),
+        array('iptc:creator:phone','//@Iptc4xmpCore:CiAdrTelWork'),
+        array('iptc:creator:email','//@Iptc4xmpCore:CiAdrEmailWork'),
+        array('iptc:creator:website','//@Iptc4xmpCore:CiAdrUrlWork'),
+
+        array('iptc:iptcsubjectcode','//Iptc4xmpCore:SubjectCode/rdf:Bag/rdf:li'),
+        array('iptc:genre','//@Iptc4xmpCore:IntellectualGenre'),
+        array('iptc:scenecode','//Iptc4xmpCore:Scene/rdf:Bag/rdf:li'),
+        array('iptc:copyrightstatus','//@xmpRights:Marked'),
+        array('iptc:rightsusageterms', '//xmpRights:UsageTerms/rdf:Alt/rdf:li'),
 
     );
 
@@ -195,6 +210,7 @@ class MMWWXMPReader {
 
     public function get_tags() {
         $result = $this->get_list($this->xmps, $this->xmp_tag_list, "\t");
-        return explode("\t", $result);
+        /* return explode("\t", $result); */
+        return array();
     }
 }
