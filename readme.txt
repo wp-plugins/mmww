@@ -2,8 +2,8 @@
 Contributors: olliejones
 Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt, tags, taxonomy
 Requires at least: 3.0.1
-Tested up to: 3.8
-Stable tag: 1.0.4
+Tested up to: 3.8.1
+Stable tag: 1.0.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -346,15 +346,24 @@ A minor upgrade; Add a {filename} tag for workflows where the filename is needed
 
 Upgrade to WP 3.8.  Add more complete support for IPTC metadata, using {iptc:name} tags.
 
+ = 1.0.5 =
+
+Upgrade to WP 3.8.1  Repair defect with exif's {iso} tag.
+Add Spanish and Serbian translations thanks to Ognjen Djuraskovic.
+
 == Upgrade Notice ==
 
- = 1.0.4 =
+ = 1.0.5 =
 
-Upgrade to WP 3.8.  Add more complete support for IPTC metadata.
+Upgrade to WP 3.8.1  Repair defect with exif's {iso} tag.
+Add Spanish and Serbian translations thanks to Ognjen Djuraskovic.
 
 == Credits ==
 
 The stuff the US NSA is collecting isn't really metadata: it's call detail records. This stuff is metadata. Metadata can be poetry.
+
+Ognjen Djuraskovic of [firstsiteguide.com](http://www.firstsiteguide.com/) has generously provided
+Serbian and Spanish translations of MMWW. Хвала / Gracias / Thanks Ognjen!
 
 This plugin incorporates the Zend Media Framework by Sven Vollbehr and Ryan Butterfield
 which they generously made available under the BSD license. It comes in handy for retrieving
