@@ -2,7 +2,7 @@
 Contributors: olliejones
 Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt, tags, taxonomy
 Requires at least: 3.0.1
-Tested up to: 3.8.1
+Tested up to: 3.9
 Stable tag: 1.0.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -351,12 +351,16 @@ Upgrade to WP 3.8.  Add more complete support for IPTC metadata, using {iptc:nam
 Upgrade to WP 3.8.1  Repair defect with exif's {iso} tag.
 Add Spanish and Serbian translations thanks to Ognjen Djuraskovic.
 
+Tests clean with WP 3.9.
+
 == Upgrade Notice ==
 
  = 1.0.5 =
 
 Upgrade to WP 3.8.1  Repair defect with exif's {iso} tag.
 Add Spanish and Serbian translations thanks to Ognjen Djuraskovic.
+
+Tests clean with WP 3.9.
 
 == Credits ==
 
