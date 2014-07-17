@@ -78,14 +78,14 @@ function mmww_activate()
     /* handle options settings defaults */
     $o = array(
         'audio_shortcode' => 'media', /* never, media  -- choose one */
-        'audio_caption' => '({credit} )({title} )({album} )({year} (Copyright &copy; {copyright} )([{tags}] )({description})',
+        'audio_caption' => '({credit} )({title} )({album} )({year} )(Copyright &copy; {copyright} )([{tags}] )({description})',
         'audio_title' => '({title})',
         'audio_displaycaption' => '({grouptitle} )({title} )({album} )({credit})',
-        'image_caption' => '({title} {credit} )(Copyright &copy; {copyright} )([{tags}] )({description})',
+        'image_caption' => '({title} )({credit} )(Copyright &copy; {copyright} )([{tags}] )({description}) (<A href="https://maps.google.com/?ll={latitude},{longitude}&z=16" target="_blank">\(Map {title}\)</A>)',
         'image_displaycaption' => '({title})',
         'image_alt' => '({title} )({credit})',
         'image_title' => '({title})',
-        'application_caption' => '({title} )({credit} (Copyright &copy; {copyright} )([{tags}] )({description})',
+        'application_caption' => '({title} )({credit} )(Copyright &copy; {copyright} )([{tags}] )({description})',
         'application_title' => '({title})',
         'use_creation_date' => 'no',
         'populate_tags' => 'yes',
