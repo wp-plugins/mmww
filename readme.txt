@@ -2,7 +2,7 @@
 Contributors: olliejones
 Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt, tags, taxonomy
 Requires at least: 3.0.1
-Tested up to: 4.0
+Tested up to: 4.1
 Stable tag: 1.0.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
