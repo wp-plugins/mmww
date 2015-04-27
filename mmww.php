@@ -4,13 +4,13 @@ Plugin Name: MMWW
 Plugin URI: http://www.plumislandmedia.net/wordpress-plugins/mmww/
 Description: Use the Media Metadata Workflow Wizard to integrate your media metadata workflow with WordPress's Media Library. If you create lots of images, audio clips, or video clips you probably work hard to put metadata (titles, authors, copyrights, track names, dates, and all that) into them. Now you can have that metadata stored into the Media Library automatically when you upload your media files.
 Author: Ollie Jones
-Version: 1.0.5
+Version: 1.0.6
 Author URI: http://www.plumislandmedia.net/about/
 Text Domain: mmww
 */
 /** current version number  */
 if ( !defined( 'MMWW_VERSION_NUM' ) ) {
-    define('MMWW_VERSION_NUM', '1.0.5');
+    define('MMWW_VERSION_NUM', '1.0.6');
 }
 /* set up some handy globals */
 if ( !defined( 'MMWW_THEME_DIR' ) ) {

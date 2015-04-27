@@ -2,8 +2,8 @@
 Contributors: olliejones
 Tags: media, audio, video, images, metadata, pdf, acrobat, exif, id3, xmp, png, iptc, workflow, caption, alt, tags, taxonomy
 Requires at least: 3.0.1
-Tested up to: 4.1
-Stable tag: 1.0.5
+Tested up to: 4.2
+Stable tag: 1.0.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -251,6 +251,16 @@ in case your particular media workflow needs them.
      {creditoriginal}
      {copyright}
 
+= Wordpress information for all files =
+
+     {wp:attachmentid} gives the post id of the present post.
+     {wp:parentid} gives the post id of the post to which this media file is attached.
+     {wp:parenttitle} gives the title of the post to which this media file is attached.
+     {wp:parentslug} gives the slug (url fragment) of the post to which this media file is attached.
+
+These may be missing if those values are unknown at the time of media creation. Reloading the media metadata will
+insert them.
+
 = A note about timestamps =
 
 MMWW has a setting that allows attachment dates to be set using the timestamp in the media's metadata.
@@ -353,14 +363,20 @@ Add Spanish and Serbian translations thanks to Ognjen Djuraskovic.
 
 Tests clean with WP 3.9.
 
+ = 1.0.6 =
+
+Upgrade to WP 4.2
+Add "reread metadata" link to grid view of media.
+      per https://core.trac.wordpress.org/ticket/29056
+Add WordPress-specific tags
+   {wp:attachmentid}, {wp:parentid}, {wp:parenttitle}, {wp:parentslug}
+
+Tests clean with WP 4.1.1
+
 == Upgrade Notice ==
 
- = 1.0.5 =
-
-Upgrade to WP 3.8.1  Repair defect with exif's {iso} tag.
-Add Spanish and Serbian translations thanks to Ognjen Djuraskovic.
-
-Tests clean with WP 3.9.
+ = 1.0.6 =
+Upgrade to WP 4.1.1  Add "reread metadata" link to grid view of media.
 
 == Credits ==
 
